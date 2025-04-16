@@ -1,0 +1,650 @@
+//单行注释:当前文件可以直接运行,完全符合Gbox语法规则,注释部分用来说明
+//当前文件仅包含Gbox脚本语法介绍和简单示例,具体使用时候,所有类/函数/变量都需要结合API文档严谨使用
+//API文档中都是按照命名空间/类为单位来组织变量和函数的,其中:开头的命名空间中的函数都是可以不写作用域直接调用的:
+//比如 :fixcall,:math中的函数,可以直接写为  rand(100),sin(3.4)
+//而其他命名空间中的函数则需要通过双冒号来标明作用域:
+//比如:file::SaveText,sys::CopyToClipboard等等
+//类中的变量函数则和其他语言一样,通过实例化后的对象加点来访问.比如obj p=new GObjShape;p.SetColor(0xff00ff00);
+/*
+多行注释
+GBox是一门类似C++的面向对象的编程语言,最顶层的脚本对象就是当前窗口,可通过g_pDeskTop调用.
+直接写在文件中的代码相当于写在了g_pDeskTop内部
+表达式以;结束
+所有类的成员变量，都要以"m_"+类型标记开头,局部变量不得以m_开头.不同的变量类型有不同的前缀:
+| 类型             | 前缀   | 示例       | 默认值        |
+|------------------|--------|------------|---------------|
+| int              | m_n    | m_nCount   | 0             |
+| string           | m_s    | m_sName    | ""            |
+| float            | m_f    | m_fScale   | 0.0           |
+| obj (所有对象)    | m_p    | m_pShape   | NULL          |
+| var (数组)       | m_sz   | m_szItems  | nil           |
+| var (其他类型)   | m_v    | m_vData    | nil           |
+| vec2             | m_v    | m_vPos     | vec2(0,0)     |
+| vec3             | m_v    | m_vDir     | vec3(0,0,0)   |
+| vec4             | m_v    | m_vColor   | vec4(0,0,0,0) |
+| int64            | m_N    | m_NId      | 0L            |
+| bool             | m_b    | m_bVisible | false         |
+所有类型变量都可以赋值给var,但非必要时不推荐这样用,尽量表明变量类型
+初始化变量:类型 变量名;
+变量初始化也可以不赋值,会默认设为初始值
+同类型可逗号隔开连续赋值
+例:
+*/
+//变量名,函数名,类名,样式名都支持字母数字下划线以及中文.
+//成员变量,下面这些直接写在外面的变量函数,相当于g_pDeskTop的成员变量和成员函数:
+int m_nNum,m_n星星数量=5;string m_sName="jack";var m_szList2=nil,m_szGroup3=(1,2,4,"a","b");float m_f距离_最远;
+vec2 m_vPt=vec2(5,2);
+int64 m_NID=23434434322777L;//int64的数字通常以L结尾
+//宏定义
+//gbox中没有const类型,所以一定要使用常量的地方,可以用宏定义或者枚举代替
+#define 游戏名字 "AIGame"
+#define TESTMODE
+#ifdef TESTMODE
+?"run in test mode";//问号可以输出到控制台
+#endif
+//枚举.默认递增,也可以在定义时给某个变量赋整数值,后面的依然自动递增
+enum GAMEMODE
+{
+    OPENWORLD,	//0
+    STORY,		//1
+    SANDBOX=10,	//10
+    WEGGAME		//11
+};//注意枚举结束要加分号
+//结构体
+struct PlayerDataSt{
+	string name;
+	int age;
+	var bag;
+}
+/*
+文件包含:
+//普通脚本文件包含:
+#include "文件名"		//包含单个文件
+#includedir "目录/*.gb"	//包含某个目录下所有的gb文件
+//系统库包含(系统库通常为gbz文件,需要用尖括号):
+#include <ui_sys.gbz>
+*/
+//类:class 类名:父类名{} 
+class GTestClass:GObjShape{
+	//结构体变量
+	struct PlayerDataSt m_vPlayerData;
+	//结构体变量可以直接.来访问子数据
+	m_vPlayerData.name="tom";
+	//如果有OnCreate函数,那么对象实例化以后会自动.也可以没有
+	void OnCreate(){
+		?"OnCreate";
+		foo("call by OnCreate",0);
+	}
+	//如果有和类同名的函数,则该函数为构造函数.通常可以不写
+	//构造函数只有通过new GTestClass后面接括号时候才会被调用
+	void GTestClass(int a){
+		?"构造函数";
+		foo("call by 构造函数",0);
+	}
+	//函数结构:返回值类型 函数名(形参).可以有缺省参数
+	void foo(string teststr,int testint=10){
+		//?可以进行控制台输出,多项逗号隔开
+		?teststr,"hello",100,vec2(2,5),(1,2,3),testint;//输出:("hello",100,vec2(2.0,5.0),(1,2,3),"test str agv",5)
+		//?后面接#+6位16进制数字颜色,可以变成有颜色的输出
+		?#0000ff,"hello";//输出蓝色的hello
+		//函数里的局部变量:
+		int a=10,b,c=5;string s="name:",测试名字="jam";
+		float f=1.5;var v,vfun=("a","b","c");
+		//strid
+		int sid="gamename".strid;//会自动通过算法把字符串转成一个int.等同于  id#gamename.类似的还有fn#gamename.只不过fn#通常用于函数名,res#用于资源ID,rgb#用于颜色值
+		?sid,id#gamename;//一样的输出
+		//几个特殊的对象指针:this表示当前对象,pid表示父对象,g_pDeskTop为桌面根对象
+		?this,pid,g_pDeskTop;
+		obj p=new GObj;
+		?p.isobj();//判断对象是否有效
+		//获取当前目录:$;注意，$后面必须加其他字符串内容,否则报错
+		?"当前文件所在目录:",$+"";
+		//基本数据操作和运算
+		//+,-,*,/,%,<<,>>,++,--,+=,-=,&,|
+		//常用逻辑控制关键字:条件判断:if,else;条件选择:switch,case;循环:for,while
+		for(int i=0;i<5;i++){
+			a++;//自加
+			//if后面如果只有一个语句,则可以不用加大括号
+			if(i<2) continue;//continue:跳过当前循环中的代码,开始下一次循环
+			//并且:&&;或者:||
+			if(a>12 && (b<100 || c>10)){
+				b+=2+m_vPlayerData.age;
+				//if语句可以嵌套
+				if(b>5){
+					c*=5;
+					break;//break会跳出当前层级的for循环
+				}
+			}else{
+				//b对10取余
+				c=a+b%10;
+				c=100&5;
+			}
+		}
+		b=GAMEMODE.OPENWORLD;
+		switch(b){
+			case GAMEMODE.STORY:
+			case GAMEMODE.SANDBOX:
+				s+=m_vPlayerData.name;
+				a=b+(c-10)-a+c>>2;
+				break;//break会跳出switch
+			case 6:
+				//字符串拼接
+				s+=测试名字;
+				?s;//输出:name:jack
+				//任意类型都可以直接通过和空字符串相加变成一个字符串
+				s=""+m_szGroup3+"_"+m_n星星数量;
+				//字符串长度: s.length等同于s.GetLength()
+				?s.length,s.GetLength(),s;//输出:(17,17,"(1,2,4,\\"a\\",\\"b\\")_5")
+				break;
+			//默认分支
+			default:
+				break;
+		}
+		while(a<20){
+			a++;
+			b+=2;
+			if(b>30){
+				?5/2,5/2.0;//分别输出2,2.5.前者都是整数,结果是整数
+				break;
+			}
+		}
+		//随机数
+		a=rand(100);//生成一个小于100的随机正整数
+		f=randf(1.0);//生成一个小于1.0的随机浮点数
+		//常用数学函数
+		f=sin(3.14)+cos(5.2);//传入弧度值
+		a=max(2,10)+min(5,1)+clamp(a,5,10);
+	}
+	//有返回值的函数
+	int foo2(){
+		//var类型数据说明
+		//var是一个非常强大的数据类型,可以随时赋值任何数据
+		var a="你好";
+		a+="world";
+		?a;//输出:"你好world"
+		a=10;//直接变成int
+		a+=5;
+		?a;//输出:15;
+		//最常用的还是作为数组.可以装任何类型的数据在数组里,当然也可以进行嵌套
+		a=(1,5,6,9,"abc",("hello","jack"));
+		?a[0],a[1]+a[2];//可以通过[下标]来访问数组的子项
+		//数组的相关操作
+		var v=(4,5,67);
+		//判断数组尺寸:
+		?v.size;//输出:3
+		v.SzLink(a);//数组的连接
+		?v;//输出:(4,5,67,1,5,6,9,"abc",("hello","jack"))
+		v.SzAdd(234);//数组添加项
+		v.SzDel(0);//删除第一项
+		v.SzDel(2,5);//把第二项后面的5个删了(不包括第二项,因为下标从0开始)
+		v=(0,1,2,3,4,5,8);
+		int pos=v.SzSearch(1);//搜索1所在的位置.返回值<0表示没搜到.
+		?pos;//输出:1;
+		pos=v.SzHalfSearch(6);//通过二分法搜索1所在的位置,适用于已经排序的数组.返回值如果<0,则 -1-pos即为把这个数插入的顺序位置
+		if(pos<0){
+			v.SzInsert(-1-pos,6);
+			?v;//输出:(0,1,2,3,4,5,6,8)
+		}
+		v.Destroy();//清空数组
+		//var还有很多其他的结构
+		//字典结构
+		int result;
+		//svSet可以把数组组织成类似字典的结构
+		v.svSet("a",1);v.svSet("b",2);v.svSet("c",3);
+		?v;//输出:(("a",1),("b",2),("c",3))
+		if(v.svGet("b",result)){
+			?result;//输出:2.svGet返回成功表示找到了b,并把结果放在了result里
+		}
+		//另一种取的写法,svVal第二项参数为没找到时候返回的默认值
+		result=v.svVal("b",0);
+		//vid结构:是一个一维扁平结构.同时,会以int作为key.传入的字符串会自动转成int
+		v.Destroy();
+		//vset第一个参数可以用字符串也可以用int,但字符串会自动转成int
+		v.vset("first",1);v.vset(2,2);v.vset("third".strid,3);
+		?v;//输出:(id##2,2,id##16F264DC,1,id##69B1B5BE,3)
+		//取值:vget;判断是否存在:vis
+		?v.vget("first",0),v.vget(id#third,0),v.vis("first".strid);//输出:(1,3,1)
+		//注意:数组,字典,vid三种结构不可混用.但是字典vid也是一个标准的var,并不是完全特殊的结构,也可通过下标访问子项
+		return 1;
+	}
+	void foo3(){
+		?"foo3 start";
+		//通过Abort可以抛出异常.参数为错误ID和错误描述
+		Abort(1,"抛出异常错误");
+		?"foo3 end";
+	}
+	//引用类型的形参:类型 &变量名
+	void func_agv_ref(int &a){
+		a+=10;
+	}
+	void foo4(){
+		int num=100;
+		func_agv_ref(num);
+		?num;//因为func_agv_ref的形参是引用类型,所以这里会输出110
+		foo3();//会输出"foo3 start",不会输出"foo3 end",因为Abort抛出异常中断了
+		//这里如果没有通过catch捕获异常,则会报错
+		catch{
+			?_errinfo;    // 错误 ID 和错误字符串
+			?_err;        // 只有错误 ID
+			?_erragv;     // 只有错误字符串
+		}
+	}
+	//直接写在类内部的表达式或者函数调用,会在对象初始化时候从上到下按顺序调用
+	//函数调用,当前自身函数调用直接 函数名(参数);即可调用.调用其他对象函数则通过 对象.函数名(参数);
+	foo("call in class",5);
+	foo("call in class again",100);
+	foo4();
+	//静态变量:静态变量以s_+类型标记开头
+	static obj s_pInstance;
+	//外部调用静态函数:GTestClass::Instance();
+	static obj Instance(){
+		//当前对象可以直接访问自己的静态变量.外部对象访问需要用类名加双冒号访问: GTestClass::s_pInstance
+		if(s_pInstance.isobj()) return s_pInstance;
+		s_pInstance=g_pDeskTop new GTestClass;
+		return s_pInstance;
+	}
+}
+//获取单例
+?GTestClass::Instance();
+//实例化后类内函数的执行顺序:
+//类实例化过程中,会优先把类里面的表达式/函数按顺序执行一遍,完成后,调用OnCreate函数(没有就不调用),最后是构造函数(没有就不调用)
+
+//实例化对象的几种方式
+//1.new 类名
+//这种不会调用到构造函数,new在当前对象中
+obj m_pT1=new GTestClass;
+//对象 new 类名.可以new在相应对象中
+obj m_pT11=g_pDeskTop new GTestClass;
+
+//对象通过点来调用其成员变量和成员函数
+?m_pT1.m_vPlayerData;
+m_pT1.foo2();
+//会调用到构造函数(通常不推荐使用构造函数)
+obj m_pT12=new GTestClass(100);
+//2.NewObj(类名,新对象的父对象)
+obj m_pT2=NewObj("GTestClass",this);
+//3.类名 变量名;这种方式不能写在函数里面,只能写在函数外面
+GTestClass m_pT3;
+//后面还可以通过冒号接上多个函数调用.
+GTestClass m_pT31:foo("衔接调用"):foo2();
+//如果该对象后面并不会使用,也可以通过$来作为变量名,$会自动创建一个不重复,不可访问的变量名
+GTestClass $;
+//这种写法后面还可以直接大括号加脚本
+GTestClass m_pT32{
+	//对象里写的是只属于这个对象自己的脚本
+	string m_sDescription="对象介绍";
+	string GetDescription(){
+		return m_sDescription;
+	}
+	//里面可以直接嵌套创建其他对象等,和在类内部语法完全一样
+	GTestClass m_pTest1;
+	GTestClass m_pTest2:foo2(){
+		//对象里写的是只属于这个对象自己的脚本
+		string m_sDescription="嵌套的对象";
+		string GetDescription(){
+			return m_sDescription;
+		}
+	}
+	void foo5(string s=""){
+		?"foo5",s;
+	}
+	void foo6(){}
+	//重载基类的foo4
+	void foo4(){
+		base::foo4();//重载函数里,可以通过base::调用到基类的原函数
+		//定时器调用:延迟秒数, 函数名, 参数, 执行次数
+		//定时器不会阻塞主线程
+		SetTimer(3,"foo5","定时器调用");//每隔3秒调用一次foo5
+		SetTimer(3,"foo6");//每隔3秒调用一次foo6
+		SetTimer(3,"foo6",nil,5);//每隔3秒调用一次foo6,调用5次后结束
+		//检查定时器是否存在
+		if(IsTimer("IsTimer")) KillTimer("foo5");//删除指定定时器
+
+		//微线程:可以启动一个微线程来运行函数,防止堵塞主线程.微线程会在执行结束后自动关闭
+		// 启动微线程执行foo_wait_kill函数
+		obj task1 = StartTask("foo_task");
+		// 带参数启动微线程
+		obj task2 = StartTask("foo_task_custom", 5);
+		// 带结束回调的微线程
+		obj task3 = StartTask("foo_task", nil, "on_task_completed");
+		//检查是不是有效的微线程.
+		if(IsTaskPtr(task1)){
+			//强行关闭微线程
+			RemoveHoldTask(task1);
+		}
+	}
+	//
+	void foo_task(){
+		//等待一定秒数时间
+		Wait(2.0);
+		//等待一定毫秒数时间
+		WaitMs(500);
+	}
+	void foo_task_custom(int waittime){
+		Wait(waittime);
+	}
+	void on_task_completed(){
+		?"end";
+	}
+}
+//对象删除释放
+m_pT1.DelThis();//通过对象自身调用删除,效率高,但是如果m_pT1已经无效了,那么这句会报错
+SafeDelObj(m_pT1);//更加安全,m_pT1无效也不会报错.但是效率没有DelThis高.
+//所有对象都是obj类型.空对象为NULL
+
+//样式:可以把一些共用代码抽出来,写在样式里.类只能也必须继承自一个类，但能继承多个样式
+style ShareCodeStyle1{
+	//样式除了不能实例化,其他的和类几乎一样,可以有自己的成员变量,成员函数;
+	string m_sStyleName="扩展样式";
+	void foo_test(){
+		?"call ShareCodeStyle1 foo_test";
+	}
+}
+//样式中包含指定类的代码,则需要通过尖括号标明继承这个样式的的条件.
+style<GObjShape> ShareCodeStyle2{
+	//GObjShape的SetColor函数
+	SetColor(0xff00ff00);
+	void foo_test(){
+		?"call ShareCodeStyle2 foo_test";
+	}
+	void foo_style2(){
+		
+	}
+}
+//继承自脚本类:GTestClass.继承多个样式.如果继承的样式中包含同名函数,则会按顺序覆盖重载
+class GAdvanceClass:GTestClass,ShareCodeStyle1,ShareCodeStyle2{
+	void foo_test(){
+		?"call GAdvanceClass foo_test";
+	}
+}
+GInputTest_Keyboard $;
+GAdvanceClass m_pAdv{
+	void foo_test(){
+		?"call m_pAdv obj foo_test";
+	}
+	//这里的覆盖顺序是:m_pAdv>GAdvanceClass>ShareCodeStyle2>ShareCodeStyle1
+	foo_test();
+}
+
+//鼠标键盘消息
+class GInputTest_Touch:GObjShape{
+	SetSize(100,100);
+	SetColor(0xff0000ff);
+	//鼠标消息所有继承自GObjShow的类都支持
+	/*
+	所有的GObjShow的子类,都有m_nCanTouch参数.
+	可以设置多个触摸标志来控制对象如何响应触摸/鼠标事件：
+	触摸事件类型标志:
+	#define TOUCHFLAG_ONE           0x00000001  // 单触摸模式
+	#define TOUCHFLAG_MUTI          0x00000002  // 多触摸模式
+	#define TOUCHFLAG_POP           0x00000010  // 冒泡事件
+	#define TOUCHFLAG_IN            0x00000020  // 接收IN/OUT事件
+
+	#define TOUCHFLAG_MOUSEWHEEL    0x00000100  // 接收鼠标滚轮事件
+	#define TOUCHFLAG_BREAK         0x00000200  // 中断事件传递
+	#define TOUCHFLAG_ONLYTOP       0x00000400  // 只响应顶层对象
+
+	#define TOUCHFLAG_DROPFILES     0x00001000  // 接收文件拖放
+	#define TOUCHFLAG_HOOK          0x00002000  // 钩子模式
+
+	// 预定义的标志组合
+	#define TOUCHFLAG_NORMAL        TOUCHFLAG_ONE|TOUCHFLAG_POP|TOUCHFLAG_IN|TOUCHFLAG_ONLYTOP
+	#define TOUCHFLAG_VIEW          TOUCHFLAG_ONE|TOUCHFLAG_POP|TOUCHFLAG_MOUSEWHEEL
+	#define TOUCHFLAG_ALL           0x0000FFFF
+
+	// 附加标志
+	#define TOUCHFLAG_KEYFOCUS      0x00010000  // 获取键盘焦点
+	#define TOUCHFLAG_NEEDLOC       0x00020000  // 需要位置信息
+	*/
+	m_nCanTouch=TOUCHFLAG_NORMAL;//设置了`m_nCanTouch`后，引擎会在触摸/鼠标事件发生时自动调用对象的`OnTouch`函数。
+	/*
+	**鼠标消息回调:OnTouch**
+	参数dn是一个结构体:
+	flag：整数类型 (VAR_INT)，表示触摸事件的标志。
+	id：整数类型 (VAR_INT)，表示触摸事件的标识符。
+	scrpt：二维向量 (VAR_VEC2)，表示触摸的屏幕坐标。
+	downpt：二维向量 (VAR_VEC2)，表示触摸最初检测到的点。
+	locpt：三维向量 (VAR_VEC3)，表示触摸的位置信息。
+	sec：浮点数 (VAR_FLOAT)，表示触摸事件开始以来的时间（秒）。
+	speed：二维向量 (VAR_VEC2)，表示触摸移动的速度。
+	idnum：整数类型 (VAR_INT)，表示触摸标识符的数量。
+	szno：整数类型 (VAR_INT)，表示尺寸编号。
+	ctrlkey：整数类型 (VAR_INT)，表示与触摸相关的控制键。
+	ext：无类型 (VAR_NONE)，用于存储额外的数据或扩展。
+	useragv：无类型 (VAR_NONE)，用于用户自定义的聚合数据。
+	showpath：无类型 (VAR_NONE)，用于显示路径。
+	objnum：整数类型 (VAR_INT)，表示触摸事件涉及的对象数量。
+	*/
+	void OnTouch(var &dn){
+		switch(dn.flag) {
+		    case TOUCH_DOWN:    // 触摸/鼠标按下
+			break;
+		    case TOUCH_MOVE:    // 触摸/鼠标移动
+			break;
+		    case TOUCH_UP:      // 触摸/鼠标释放
+		    	?"点击";
+			break;
+		    case TOUCH_DBCLK:   // 双击
+			break;
+		    case TOUCH_IN:      // 鼠标进入对象区域
+			break;
+		    case TOUCH_OUT:     // 鼠标离开对象区域
+		    case TOUCH_CANCEL:  // 触摸取消
+			break;
+		}
+	}
+}
+class GInputTest_Keyboard : GObj {
+	/*
+	所有类都支持监听键盘消息
+	//键值定义说明:
+	#define GTK_LBUTTON				0x1
+	#define GTK_RBUTTON				0x2
+	#define GTK_CANCEL				0x3
+	//keyboard:GVK
+	#define GVK_BACK				0x8
+	#define GVK_TAB				0x9
+	#define GVK_CLEAR				0xC
+	#define GVK_RETURN				0xD
+	#define GVK_SHIFT				0x10
+	#define GVK_CTRL					0x11
+	#define GVK_ALT				0x12
+	#define GVK_PAUSE				0x13
+	#define GVK_CAPITAL				0x14
+	#define GVK_ESCAPE				0x1B
+	#define GVK_SPACE				0x20
+	#define GVK_PAGEUP				0x21
+	#define GVK_PAGEDN				0x22
+	#define GVK_END				0x23
+	#define GVK_HOME				0x24
+	#define GVK_LEFT				0x25
+	#define GVK_UP				0x26
+	#define GVK_RIGHT				0x27
+	#define GVK_DOWN				0x28
+	#define GVK_SELECT				0x29
+	#define GVK_PRINT				0x2A
+	#define GVK_EXECUTE				0x2B
+	#define GVK_SNAPSHOT				0x2C
+	#define GVK_INSERT				0x2D
+	#define GVK_DELETE				0x2E
+	#define GVK_HELP				0x2F
+	#define GVK_A				0x41
+	#define GVK_B				0x42
+	#define GVK_C				0x43
+	#define GVK_D				0x44
+	#define GVK_E				0x45
+	#define GVK_F				0x46
+	#define GVK_G				0x47
+	#define GVK_H				0x48
+	#define GVK_I				0x49
+	#define GVK_J				0x4A
+	#define GVK_K				0x4B
+	#define GVK_L				0x4C
+	#define GVK_M				0x4D
+	#define GVK_N				0x4E
+	#define GVK_O				0x4F
+	#define GVK_P				0x50
+	#define GVK_Q				0x51
+	#define GVK_R				0x52
+	#define GVK_S				0x53
+	#define GVK_T				0x54
+	#define GVK_U				0x55
+	#define GVK_V				0x56
+	#define GVK_W				0x57
+	#define GVK_X				0x58
+	#define GVK_Y				0x59
+	#define GVK_Z				0x5A
+
+	#define GVK_0				48
+	#define GVK_1				49
+	#define GVK_2				50
+	#define GVK_3				51
+	#define GVK_4				52
+	#define GVK_5				53
+	#define GVK_6				54
+	#define GVK_7				55
+	#define GVK_8				56
+	#define GVK_9				57
+	#define GVK_SUB				189 //'-'
+	#define GVK_EQ				187 //'='
+
+	#define GVK_LWIN				0x5B
+	#define GVK_RWIN				0x5C
+	#define GVK_APPS				0x5D
+	#define GVK_NUMPAD0				0x60
+	#define GVK_NUMPAD1				0x61
+	#define GVK_NUMPAD2				0x62
+	#define GVK_NUMPAD3				0x63
+	#define GVK_NUMPAD4				0x64
+	#define GVK_NUMPAD5				0x65
+	#define GVK_NUMPAD6				0x66
+	#define GVK_NUMPAD7				0x67
+	#define GVK_NUMPAD8				0x68
+	#define GVK_NUMPAD9				0x69
+	#define GVK_F1				0x70
+	#define GVK_F2				0x71
+	#define GVK_F3				0x72
+	#define GVK_F4				0x73
+	#define GVK_F5				0x74
+	#define GVK_F6				0x75
+	#define GVK_F7				0x76
+	#define GVK_F8				0x77
+	#define GVK_F9				0x78
+	#define GVK_F10				0x79
+	#define GVK_F11				0x7A
+	#define GVK_F12				0x7B
+	#define GVK_F13				0x7C
+	#define GVK_F14				0x7D
+	#define GVK_F15				0x7E
+	#define GVK_F16				0x7F
+	#define GVK_F17				0x80
+	#define GVK_F18				0x81
+	#define GVK_F19				0x82
+	#define GVK_F20				0x83
+	#define GVK_NUMLOCK				0x90
+	#define GVK_SCROLL				0x91
+	//ctrlkey:GVKBIT
+	#define GVKBIT_SHIFT				0x1
+	#define GVKBIT_CTRL				0x2
+	#define GVKBIT_ALT				0x4
+	*/
+	// 注册对象接收键盘事件
+	keyboard::Reg(this);
+	// 键盘按下回调函数
+	// key为GVK_开头的键盘常量，ctrlkey为辅助键状态（Shift、Ctrl等）
+	void OnKeyDown(int key, int ctrlkey) {
+		?"key down:", key, ctrlkey;
+		if(key==GVK_RETURN && ctrlkey&GVKBIT_SHIFT){
+			?"按下回车和shift";
+		}
+	}
+	// 键盘释放回调函数
+	void OnKeyUp(int key, int ctrlkey) {
+		?"key up:", key, ctrlkey;
+	}
+}
+GInputTest_Touch $;
+GInputTest_Keyboard $;
+
+//Gbox常用类介绍
+//所有脚本类的基类都是GObj
+//所有可以显示的类,都继承自GObjShow
+//所有可以显示的3D类,都继承自GObj3DShow
+//GObjShape是最常用的2D类,可以显示形状,图片,可以监听鼠标键盘消息
+//画一个红色长方形,里面居中放一个"abc"文字,点击后文字切换显示示例:
+GObjShape ${
+	GObjText m_pText{
+		//设置rect,参数顺序,左上右下.
+		SetRect(-20,-10,20,10);//把原点设在中心
+		SetColor(0xff00ff00);//绿色;也可直接用成员变量:m_nColor=0xff00ff00;
+		//设置文字
+		SetText("abc");
+		//文字水平,垂直都居中:(0,1,2)对应左中右,上中下
+		SetAlign(1,1);
+		//手动坚定指定对象的尺寸变化
+		g_pDeskTop.AddSizeNoti(this,fn#NotiPidSizeChged);
+		void NotiPidSizeChged(obj p,float w,float h){
+			//窗口尺寸变化设置一个随机颜色
+			m_nColor=0xff000000|rand(0x00ffffff);
+		}
+	}
+	m_nCanTouch=TOUCHFLAG_NORMAL;
+	SetPos(100,100);
+	SetSize(200,120);
+	m_fAlpha=0.2;
+	//红色,黑色边缘,圆角半径10
+	SetShape(0xffff0000,0xff000000,10);
+	//SetImg("");//可以传入图片路径:png,jpg
+	//SetShow(0);//隐藏
+	//当前对象尺寸变化时自动回调OnSizeChged
+	void OnSizeChged(){
+		//文字放在对象中央
+		m_pText.SetPos(m_fW/2,m_fH/2);
+		?m_fW/2,m_fH/2;
+	}
+	void OnTouch(var &dn){
+		//点一下text就会切换显示状态
+		if(dn.flag==TOUCH_UP) m_pText.m_nShow=!m_pText.m_nShow;
+	}
+}
+
+//资源服务器
+//Gbox为了方便资源管理和查找,把所有资源都放在了资源服务器上,可以通过res#格式的资源ID直接在脚本里引用
+//要使用资源服务器需要,包含sysnet系统库并启用autores.下面代码即可在屏幕上显示一个200*200的金币图标
+//所有需要传图片,模型,特效资源的接口,都支持传本地文件路径和服务器资源ID两种格式
+#include <sysnet.gbz>
+#system autores
+GObjShape $:SetPosSize(100,100,200,200):SetImg(res#04C7B098_03D40301);
+
+//下面代码可以在3D世界中放一个3D模型和一个箱子模型,相机渲染
+GObj3DWorld m_pWorld{
+	GObj3DShape m_pShape{
+		m_fAlpha=0.2;
+		m_nColor=0xff00ff00;
+		SetBoxEx(vec3(3,3,0),vec3(-2.5,-2.5,-10));
+	}
+	GObj3DAni m_p箱子:Load(res#0418488A_023F0502):SetPos(5,3,0);
+}
+//画面中会显示一个绿色半透明长方体
+GObjCamera m_pCam:SetPosSize(100,100,500,300):SetWorld(m_pWorld);
+
+
+//为了方便开发,有一些整理好的系统库可以调用:比如ui_sys.gbz等
+//ui_sys库中包含了基本的UI和其他常用组件
+#include <ui_sys.gbz>
+//小例子,更多使用需要参考ui_sys库的api文档
+//SysConView:自动排列子项的视图容器
+SysConView ${
+	//自动充满父对象
+	SetAnchor_Fill();
+	void OnCreate(){
+		obj p;string s;
+		for(int i=0;i<100;i++){
+			p=new SysBtn;
+			p.SetText("按钮:"+i+rand(1000000));
+			p.m_nColor=0xff000000|rand(0x00ffffff);
+			//按钮点击调用修改SysConView颜色
+			p.LinkChg(function(int c){SetColor(c);}<<p.m_nColor,this);
+		}
+	}
+}

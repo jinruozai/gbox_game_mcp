@@ -1,0 +1,62 @@
+#include <ui_sys.gb>
+
+SetConClass();
+
+class UDPTest:SysTrace{
+	int m_nSendToIp=LOCIP;
+	GSocketUdp m_pUDP {
+		void OnCmd(int cmd,var agv,int ip,int port){
+			?"cmd:  ",cmd,agv,ip,port;
+			/*
+			if(!agv.IsString()) return;
+			// 尝试解析收到的JSON消息
+			var msg =agv.JsonToStrVal();
+			string funname=msg.svVal("function","");
+			?"funname:"+funname;
+			if(funname.length>0){
+				var agv;
+				CallByNameWithRet(funname,agv);
+				?"返回结果： ",agv;
+				pid.m_pUDP.SendTo(ip, port, 1, agv);
+			}
+			
+			*/
+			var v;string result;
+			v.svSet("name","测试");
+			v.svSet("description","abc测试123456789");
+			v.svGetJsonText(result);
+
+			
+			pid.m_pUDP.SendTo(ip, port, 1, result);
+			pid.AddLine(">:cmd="+cmd+";agv="+agv+";ip="+ip+":"+port+";result:"+result,#CCFF99);
+		}
+		string get_tools(){
+			var v,vfun;string result;
+			vfun.svSet("name","获取场景尺寸");
+			vfun.svSet("description","获取场景地图的尺寸范围,返回(xmin,ymin,xmax,ymax)");
+			vfun.svSet("function","get_scene_range");
+			v.svSet("get_scene_range",vfun);
+			vfun.svSet("name","创建随机物体");
+			vfun.svSet("description","在场景中的随机位置创建一个随机物体");
+			vfun.svSet("function","create_rand_object");
+			v.svSet("create_rand_object",vfun);
+			if(!v.svGetJsonText(result)){
+				Err("转换结果失败:"+v);	
+			}
+			return result;
+		}
+		string get_scene_range(){
+			return (-25,-25,25,25);
+		}
+		string create_rand_object(){
+			return "创建了一个随机物体";
+		}
+	}
+	void Start(int port){
+		m_pUDP.BindPort(port);
+		AddLine("Gbox Mcp Client UDP started at "+sys::GetSelfIPAddress()+":"+m_pUDP.m_nPort);
+	}
+}
+
+// 只需要一个UDP实例来监听
+UDPTest m_pOut:Start(20000):SetPageFlag(PAGE_FITWH);

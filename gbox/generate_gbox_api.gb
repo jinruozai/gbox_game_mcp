@@ -1,0 +1,169 @@
+class GNameSpaceData:GObj{
+	string m_sName,m_sKind,m_sPath,m_sMem;
+	var m_szParams,m_szFuns;
+	void AddSpaceParam(var v){ m_szParams.SzAdd(v); }
+	void AddSpaceFun(var v){ m_szFuns.SzAdd(v); }
+	string GetMDPath(){
+		string s=m_sPath;string subs;
+		var v=s.Split("/");s="";
+		for subs in v{
+			if(s.length>0) s+="/";
+			s+="["+subs+"]"+"(#"+subs+")";
+		}
+		return s;
+	}
+	string GetMDText(){
+		string s;var sub;
+		s+="### "+m_sName+"\r\n";
+		s+="**类型**：["+m_sKind+"](#"+m_sKind+")　　　　";
+
+		s+=((m_sKind=="class")?"**继承** ：":"**路径** ：")+GetMDPath()+"\r\n";
+		s+="**描述**:"+m_sMem+"\r\n";
+		if(m_szParams.size>0){
+			s+="#### 变量\r\n";
+			s+="|  变量名  |  数据类型  |  描述  |\r\n";
+			s+="|-------|--------|------|\r\n";
+			for sub in m_szParams{
+				s+="|  "+sub.name+"  |  "+sub.kind+"  |  "+sub.mem+"  |\r\n";
+			}
+		}
+		if(m_szFuns.size>0){
+			s+="#### 函数\r\n";
+			s+="|  函数原型  |  描述  |\r\n";
+			s+="|-------|------|\r\n";
+			for sub in m_szFuns{
+				s+="|  `"+sub.name+"`  |  "+sub.mem+"  |\r\n";
+			}
+		}
+		s+="----\r\n";
+		return s;
+	}
+}
+struct NameSpaceSt{
+	string name;
+	string kind;
+	string path;
+	string mem;
+	var params;
+	var funs;
+}
+struct ParamSt{
+	string name;
+	string kind;
+	string access;
+	string mem;	
+}
+struct FunSt{
+	string name;
+	string mem;
+}
+
+string GetKeyWordMem(string key){
+	string s;
+	switch(key){
+		case "class":
+			s="类是 Gbox 中的基本构建块，用于创建具有属性和方法的对象模板。类定义了对象的结构和行为，支持继承机制以实现代码复用。通过类，你可以封装数据和功能，从而创建可以服用的对象";
+			break;
+		case "eve":
+			s="标准库,脚本可以直接调用库里的函数,无需写作用域.主要提供系统控制、任务管理和高级数学计算功能";
+			break;
+		case "fixcall":
+			s="标准库,脚本可以直接调用库里的函数,无需写作用域.主要提供基础数学运算、颜色处理和基础数据处理等功能";
+			break;
+		case "namespace":
+			s="命名空间,脚本可以通过 命名空间::函数名 的格式来调用库中的函数";
+			break;
+		case "ptrex":
+			s="ptrex 是特殊的对象引用类型，用于安全地引用和操作游戏中的复杂对象（如模型、材质、粒子系统等）。它提供了引用计数机制和类型安全检查，确保对象正确管理。通过 ptrex，脚本可以创建、操作和共享游戏引擎中的核心对象";
+			break;
+		case "varkind":
+			s="varkind 定义了 Gbox 脚本中的变量类型系统。Gbox 支持多种变量类型，包括基本类型（int,float,bool,string）和复杂类型（var、obj、ptrex）。变量类型系统确保脚本中的数据操作安全有效，并提供了类型转换和检查功能";
+			break;
+	}
+	return s;
+}
+void foo(){
+	obj nsp;
+	struct ParamSt paramst;
+	struct FunSt funst;
+	string rw;
+	var subsp,v,all,szkind,sub;
+	var paramflags=("只读","只写","读写");
+	syshelp::GetSysAllClassPathDef(all);
+	for v in all{
+		switch(v[1]){
+			//标准库
+			case "eve":
+			case "fixcall":
+			//类
+			case "class":
+			//命名空间
+			case "namespace":
+			//扩展指针
+			case "ptrex":
+			//数据类型
+			case "varkind":
+				nsp=new GNameSpaceData;
+				nsp.m_sName=v[2];
+				nsp.m_sKind=v[1];
+				nsp.m_sPath=v[3];
+				nsp.m_sMem=v[4];
+				sub=szkind.svVal(v[1],nil);
+				sub.SzAdd(nsp);
+				szkind.svSet(v[1],sub);
+				break;
+			//变量
+			case "param":
+				if(!nsp.isobj()){
+					Err("namespace not exist:"+v[2]);
+					break;
+				}
+				if(nsp.m_sName!=v[6]){
+					Err("param space diff:"+nsp.m_sName+","+v[6]);
+					break;
+				}
+				subsp=paramst;
+				subsp.name=v[2];
+				subsp.kind=v[3];
+				subsp.access=paramflags[v[5]%3];
+				subsp.mem=v[4];
+				nsp.AddSpaceParam(subsp);
+				break;
+			//函数
+			case "fun":
+				if(!nsp.isobj()){
+					Err("namespace not exist:"+v[2]);
+					break;
+				}
+				if(nsp.m_sName!=v[6]){
+					Err("fun space diff:"+nsp.m_sName+","+v[6]);
+					break;
+				}
+				subsp=funst;
+				subsp.name=v[3];
+				subsp.mem=v[4];
+				nsp.AddSpaceFun(subsp);
+				break;
+			default:
+				Err("未处理的数据类型:"+v);
+				break;
+		}
+	}
+	string shead,s,mem;
+	shead="#  GBox API 文档\r\n";
+	shead+="Gbox是一个跨平台的轻量级游戏引擎,提供2D/3D图形渲染、粒子特效系统、动画系统、UI界面开发、音频处理、资源管理和脚本编程，让开发者能快速创建高质量游戏和交互应用\r\n";
+	for v in szkind{
+		?"=="+v[0]+";数量:"+v[1].size;
+		shead+="##  "+v[0]+"\r\n";
+		mem=GetKeyWordMem(v[0]);
+		if(mem.length>0) shead+=mem+"\r\n";
+		for subsp in v[1]{
+			shead+="  -  ["+subsp.m_sName+"](#"+subsp.m_sName+")  -  "+subsp.m_sMem+"\r\n";
+			s+=subsp.GetMDText();
+			if(subsp.m_sKind=="eve") ?s;
+		}
+	}
+	shead+="\r\n----\r\n"+s;
+	file::SaveText(shead,$+"gbox_api.md");
+}
+foo();
