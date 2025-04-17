@@ -1,147 +1,276 @@
 #  GBox API 文档
+Gbox是一个跨平台的轻量级游戏引擎,提供2D/3D图形渲染、粒子特效系统、动画系统、UI界面开发、音频处理、资源管理和脚本编程，让开发者能快速创建高质量游戏和交互应用
 ##  class
 类是 Gbox 中的基本构建块，用于创建具有属性和方法的对象模板。类定义了对象的结构和行为，支持继承机制以实现代码复用。通过类，你可以封装数据和功能，从而创建可以服用的对象
-  -  [GObj](#GObj)  -  基础类
-  -  [GObjSandBox](#GObjSandBox)  -  基础沙盒对象类，提供沙盒环境的创建、表达式编译和参数获取功能
-  -  [GObjVDisk](#GObjVDisk)  -  虚拟磁盘文件系统类，用于管理和访问虚拟文件空间
-  -  [GObjZipFile](#GObjZipFile)  -  ZIP压缩文件处理类，提供ZIP文件的创建、读取和提取功能
-  -  [GObjLZ4File](#GObjLZ4File)  -  LZ4高性能压缩文件处理类，用于打包和压缩多个文件
-  -  [GSocket](#GSocket)  -  网络通信Socket类，管理TCP/IP连接和数据传输
-  -  [GSocketC](#GSocketC)  -  客户端套接字类，用于建立与服务器的TCP连接和通信
-  -  [GSocketS](#GSocketS)  -  套接字服务器窗口类，用于管理套接字服务器连接和事件处理，支持多客户端连接和数据传输
-  -  [GSocketSBase](#GSocketSBase)  -  Socket服务器基类，负责监听和管理客户端连接
-  -  [GVNetObj](#GVNetObj)  -  虚拟网络对象类，用于管理多客户端连接和通信
-  -  [GSocketUdp](#GSocketUdp)  -  UDP套接字类，用于实现UDP通信和命令传输
-  -  [GNetFileObj](#GNetFileObj)  -  网络文件对象类，提供文件传输与下载功能
-  -  [GMIDFileObj](#GMIDFileObj)  -  中间存储键值对的文件对象类，用于在文件中持久化存储变量数据
-  -  [GObjShow](#GObjShow)  -  2D显示对象基类，用于在2D场景中显示和管理可视对象
-  -  [GObj2DWnd](#GObj2DWnd)  -  2D窗口对象类，提供操作系统窗口的创建和管理功能，支持窗口显示、交互和渲染等操作
-  -  [GBoxShowApp](#GBoxShowApp)  -  应用程序显示框架类，用于管理应用窗口、输入事件和资源沙盒
-  -  [GSandApp2DWnd](#GSandApp2DWnd)  -  2D沙盒应用窗口类，用于作为沙盒环境的显示根节点并处理窗口相关事件
-  -  [GObj2DSandBox](#GObj2DSandBox)  -  2D沙盒环境类，用于创建和管理2D场景中的脚本执行环境，提供资源控制、对象创建和触控管理功能
-  -  [GResManager](#GResManager)  -  这个类实现了资源管理器，负责资源的加载、缓存和管理，支持本地与网络资源，并维护资源引用关系与状态
-  -  [GObjText](#GObjText)  -  2D文本对象类，提供文本渲染和属性控制功能，支持字体设置、对齐方式、颜色控制和下划线等文本显示效果
-  -  [GObjShape](#GObjShape)  -  常用的2D形状
-  -  [GObjView](#GObjView)  -  2D视图对象类，提供可滚动和缩放的视图功能，支持地图和视图坐标系转换、视图变换通知、滚动条显示和弹性拖拽等功能
-  -  [GObjEdit](#GObjEdit)  -  编辑框对象类，继承自GObjShow，用于处理单行文本的编辑、显示和交互功能
-  -  [GObjDoc](#GObjDoc)  -  文档对象类，用于处理文档的显示、编辑、样式和布局等功能
-  -  [GObjAni](#GObjAni)  -  2D动画对象类，提供帧动画的加载、播放和控制功能，支持多种动画类型、缩放、旋转和轨迹显示，用于创建和管理交互式动画效果
-  -  [GObjUndo](#GObjUndo)  -  撤销和重做操作管理类，用于记录和执行对象状态的撤销和重做功能
-  -  [GObjTxt](#GObjTxt)  -  多行文本输出控件，支持日志记录、错误输出和调试信息显示，具有自动滚动、图标与颜色设置等功能
-  -  [GObjSyntaxEdit](#GObjSyntaxEdit)  -  代码编辑文本框，提供语法高亮、代码折叠、智能缩进与自动补全，支持多种编程语言和自定义配色
-  -  [GObjSheet](#GObjSheet)  -  表格控件类，提供灵活的行列数据管理和显示，支持单元格编辑、样式设置和多种类型数据展示
-  -  [GObjSheetItem](#GObjSheetItem)  -  表格单元格类，实现表格中单个数据项的显示与交互，支持多种数据类型和显示样式
-  -  [GObjLook](#GObjLook)  -  观察框对象类，提供对其他显示对象的观察和代理显示功能，支持坐标变换、触摸事件转发和独立显示标志设置
-  -  [GObjSndStream](#GObjSndStream)  -  音频流处理类，提供音频录制和播放功能，支持网络音频数据传输
-  -  [GWaveFFTShow](#GWaveFFTShow)  -  这个类实现了音频FFT频谱显示控件，用于对音频数据进行傅里叶变换分析并以可视化方式呈现频谱，支持实时波形分析和频带显示
-  -  [GObjSndView](#GObjSndView)  -  这个类实现了音频可视化视图控件，用于显示和播放音频波形，支持音频文件加载、波形渲染、音量控制和选区播放
-  -  [GObjCamera](#GObjCamera)  -  3D相机类，用于控制3D场景的视角和渲染
-  -  [GObj3DShow](#GObj3DShow)  -  3D对象显示基类，提供3D显示、世界坐标变换和渲染管理功能
-  -  [GObj3DWorld](#GObj3DWorld)  -  3D世界对象，管理场景中的3D对象、碰撞检测和光照效果
-  -  [GObj3DLight](#GObj3DLight)  -  3D光照对象，用于管理场景中的光源效果
-  -  [GObj3DSkyBox](#GObj3DSkyBox)  -  天空盒对象，用于渲染3D场景的背景天空
-  -  [GObj3DShadowSSM](#GObj3DShadowSSM)  -  阴影贴图渲染类，使用分割空间映射(SSM)技术实现3D场景动态阴影效果
-  -  [GObj3DWater](#GObj3DWater)  -  3D水体对象，用于渲染水面效果及其反射、折射
-  -  [GObj3DGuid](#GObj3DGuid)  -  3D网格导航类，用于创建和管理3D场景中的网格导航系统
-  -  [GObj3DCamera](#GObj3DCamera)  -  3D相机视锥体类，用于可视化和控制3D相机视锥体
-  -  [GObj3DBlkMaker](#GObj3DBlkMaker)  -  3D区块生成器对象，用于创建和显示网格区块
-  -  [GObj3DAni](#GObj3DAni)  -  3D动画对象，用于管理和播放3D模型动画
-  -  [GObj3DCharacter](#GObj3DCharacter)  -  3D角色对象，提供角色动作控制、路径行走和跳跃功能
-  -  [GObj3DAniMove](#GObj3DAniMove)  -  3D动画移动对象，提供角色移动、路径跟随和碰撞检测功能
-  -  [GObj3DHit](#GObj3DHit)  -  3D碰撞检测类，用于管理3D场景中的对象碰撞检测和事件触发
-  -  [GObj3DShape](#GObj3DShape)  -  3D基础形状对象类，用于在3D场景中创建和显示基本几何体
-  -  [GObj3DLine](#GObj3DLine)  -  3D线条绘制类，用于在3D场景中创建和显示线条、坐标轴和文本标注
-  -  [GObjMeshLod](#GObjMeshLod)  -  3D网格LOD优化类，用于自动简化网格模型并支持不同细节层次的显示
-  -  [GMcWorldObj](#GMcWorldObj)  -  MC世界对象，管理体素世界的创建、加载和编辑
-  -  [GObj3DPixelMc](#GObj3DPixelMc)  -  3D像素MC对象，用于渲染和管理体素世界的显示
-  -  [GMcTreeMaker](#GMcTreeMaker)  -  MC树结构生成器，用于创建和管理体素树结构
-  -  [GSandAppWnd](#GSandAppWnd)  -  沙盒应用窗口类，用于创建和管理沙盒环境中的应用窗口
-  -  [GObj3DSandBox](#GObj3DSandBox)  -  3D沙盒环境类，用于创建和管理3D场景中的脚本执行环境
-  -  [GObj3DDepMap](#GObj3DDepMap)  -  深度图渲染类，用于生成和管理3D场景深度图以实现遮挡剔除
-  -  [GObj3DParticle](#GObj3DParticle)  -  3D粒子系统类，用于创建和管理3D场景中的粒子特效
-  -  [GWebFile](#GWebFile)  -  HTTP文件下载类，提供多线程分块下载、断点续传和进度通知功能
-  -  [GSandBoxWinApp](#GSandBoxWinApp)  -  
-  -  [GWebLink](#GWebLink)  -  网络链接类，提供HTTP/HTTPS网页访问、数据传输和请求功能
+  -  [GObj](#GObj)      **继承** ：GObj
+     基础类
+  -  [GObjSandBox](#GObjSandBox)      **继承** ：GObj/GObjSandBox
+     基础沙盒对象类，提供沙盒环境的创建、表达式编译和参数获取功能
+  -  [GObjVDisk](#GObjVDisk)      **继承** ：GObj/GObjVDisk
+     虚拟磁盘文件系统类，用于管理和访问虚拟文件空间
+  -  [GObjZipFile](#GObjZipFile)      **继承** ：GObj/GObjZipFile
+     ZIP压缩文件处理类，提供ZIP文件的创建、读取和提取功能
+  -  [GObjLZ4File](#GObjLZ4File)      **继承** ：GObj/GObjLZ4File
+     LZ4高性能压缩文件处理类，用于打包和压缩多个文件
+  -  [GSocket](#GSocket)      **继承** ：GObj/GSocket
+     网络通信Socket类，管理TCP/IP连接和数据传输
+  -  [GSocketC](#GSocketC)      **继承** ：GObj/GSocket/GSocketC
+     客户端套接字类，用于建立与服务器的TCP连接和通信
+  -  [GSocketS](#GSocketS)      **继承** ：GObj/GSocketSBase/GSocketS
+     套接字服务器窗口类，用于管理套接字服务器连接和事件处理，支持多客户端连接和数据传输
+  -  [GSocketSBase](#GSocketSBase)      **继承** ：GObj/GSocketSBase
+     Socket服务器基类，负责监听和管理客户端连接
+  -  [GVNetObj](#GVNetObj)      **继承** ：GObj/GVNetObj
+     虚拟网络对象类，用于管理多客户端连接和通信
+  -  [GSocketUdp](#GSocketUdp)      **继承** ：GObj/GSocketUdp
+     UDP套接字类，用于实现UDP通信和命令传输
+  -  [GNetFileObj](#GNetFileObj)      **继承** ：GObj/GNetFileObj
+     网络文件对象类，提供文件传输与下载功能
+  -  [GMIDFileObj](#GMIDFileObj)      **继承** ：GObj/GMIDFileObj
+     中间存储键值对的文件对象类，用于在文件中持久化存储变量数据
+  -  [GObjShow](#GObjShow)      **继承** ：GObj/GObjShow
+     2D显示对象基类，用于在2D场景中显示和管理可视对象
+  -  [GObj2DWnd](#GObj2DWnd)      **继承** ：GObj/GObjShow/GObj2DWnd
+     2D窗口对象类，提供操作系统窗口的创建和管理功能，支持窗口显示、交互和渲染等操作
+  -  [GBoxShowApp](#GBoxShowApp)      **继承** ：GObj/GObjShow/GObj2DWnd/GBoxShowApp
+     应用程序显示框架类，用于管理应用窗口、输入事件和资源沙盒
+  -  [GSandApp2DWnd](#GSandApp2DWnd)      **继承** ：GObj/GObjShow/GObj2DWnd/GSandApp2DWnd
+     2D沙盒应用窗口类，用于作为沙盒环境的显示根节点并处理窗口相关事件
+  -  [GObj2DSandBox](#GObj2DSandBox)      **继承** ：GObj/GObjShow/GObj2DSandBox
+     2D沙盒环境类，用于创建和管理2D场景中的脚本执行环境，提供资源控制、对象创建和触控管理功能
+  -  [GResManager](#GResManager)      **继承** ：GObj/GResManager
+     这个类实现了资源管理器，负责资源的加载、缓存和管理，支持本地与网络资源，并维护资源引用关系与状态
+  -  [GObjText](#GObjText)      **继承** ：GObj/GObjShow/GObjShape/GObjText
+     2D文本对象类，提供文本渲染和属性控制功能，支持字体设置、对齐方式、颜色控制和下划线等文本显示效果
+  -  [GObjShape](#GObjShape)      **继承** ：GObj/GObjShow/GObjShape
+     常用的2D形状
+  -  [GObjView](#GObjView)      **继承** ：GObj/GObjShow/GObjView
+     2D视图对象类，提供可滚动和缩放的视图功能，支持地图和视图坐标系转换、视图变换通知、滚动条显示和弹性拖拽等功能
+  -  [GObjEdit](#GObjEdit)      **继承** ：GObj/GObjShow/GObjEdit
+     编辑框对象类，继承自GObjShow，用于处理单行文本的编辑、显示和交互功能
+  -  [GObjDoc](#GObjDoc)      **继承** ：GObj/GObjShow/GObjView/GObjDoc
+     文档对象类，用于处理文档的显示、编辑、样式和布局等功能
+  -  [GObjAni](#GObjAni)      **继承** ：GObj/GObjShow/GObjAni
+     2D动画对象类，提供帧动画的加载、播放和控制功能，支持多种动画类型、缩放、旋转和轨迹显示，用于创建和管理交互式动画效果
+  -  [GObjUndo](#GObjUndo)      **继承** ：GObj/GObjUndo
+     撤销和重做操作管理类，用于记录和执行对象状态的撤销和重做功能
+  -  [GObjTxt](#GObjTxt)      **继承** ：GObj/GObjShow/GObjView/GObjTxt
+     多行文本输出控件，支持日志记录、错误输出和调试信息显示，具有自动滚动、图标与颜色设置等功能
+  -  [GObjSyntaxEdit](#GObjSyntaxEdit)      **继承** ：GObj/GObjShow/GObjView/GObjSyntaxEdit
+     代码编辑文本框，提供语法高亮、代码折叠、智能缩进与自动补全，支持多种编程语言和自定义配色
+  -  [GObjSheet](#GObjSheet)      **继承** ：GObj/GObjShow/GObjView/GObjSheet
+     表格控件类，提供灵活的行列数据管理和显示，支持单元格编辑、样式设置和多种类型数据展示
+  -  [GObjSheetItem](#GObjSheetItem)      **继承** ：GObj/GObjShow/GObjSheetItem
+     表格单元格类，实现表格中单个数据项的显示与交互，支持多种数据类型和显示样式
+  -  [GObjLook](#GObjLook)      **继承** ：GObj/GObjShow/GObjShape/GObjLook
+     观察框对象类，提供对其他显示对象的观察和代理显示功能，支持坐标变换、触摸事件转发和独立显示标志设置
+  -  [GObjSndStream](#GObjSndStream)      **继承** ：GObj/GObjSndStream
+     音频流处理类，提供音频录制和播放功能，支持网络音频数据传输
+  -  [GWaveFFTShow](#GWaveFFTShow)      **继承** ：GObj/GObjShow/GWaveFFTShow
+     这个类实现了音频FFT频谱显示控件，用于对音频数据进行傅里叶变换分析并以可视化方式呈现频谱，支持实时波形分析和频带显示
+  -  [GObjSndView](#GObjSndView)      **继承** ：GObj/GObjShow/GObjView/GObjSndView
+     这个类实现了音频可视化视图控件，用于显示和播放音频波形，支持音频文件加载、波形渲染、音量控制和选区播放
+  -  [GObjCamera](#GObjCamera)      **继承** ：GObj/GObjShow/GObjCamera
+     3D相机类，用于控制3D场景的视角和渲染
+  -  [GObj3DShow](#GObj3DShow)      **继承** ：GObj/GObjShow/GObj3DShow
+     3D对象显示基类，提供3D显示、世界坐标变换和渲染管理功能
+  -  [GObj3DWorld](#GObj3DWorld)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DWorld
+     3D世界对象，管理场景中的3D对象、碰撞检测和光照效果
+  -  [GObj3DLight](#GObj3DLight)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DLight
+     3D光照对象，用于管理场景中的光源效果
+  -  [GObj3DSkyBox](#GObj3DSkyBox)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DSkyBox
+     天空盒对象，用于渲染3D场景的背景天空
+  -  [GObj3DShadowSSM](#GObj3DShadowSSM)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DShadowSSM
+     阴影贴图渲染类，使用分割空间映射(SSM)技术实现3D场景动态阴影效果
+  -  [GObj3DWater](#GObj3DWater)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DWater
+     3D水体对象，用于渲染水面效果及其反射、折射
+  -  [GObj3DGuid](#GObj3DGuid)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DGuid
+     3D网格导航类，用于创建和管理3D场景中的网格导航系统
+  -  [GObj3DCamera](#GObj3DCamera)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DCamera
+     3D相机视锥体类，用于可视化和控制3D相机视锥体
+  -  [GObj3DBlkMaker](#GObj3DBlkMaker)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DBlkMaker
+     3D区块生成器对象，用于创建和显示网格区块
+  -  [GObj3DAni](#GObj3DAni)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DAni
+     3D动画对象，用于管理和播放3D模型动画
+  -  [GObj3DCharacter](#GObj3DCharacter)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DAni/GObj3DCharacter
+     3D角色对象，提供角色动作控制、路径行走和跳跃功能
+  -  [GObj3DAniMove](#GObj3DAniMove)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DAni/GObj3DAniMove
+     3D动画移动对象，提供角色移动、路径跟随和碰撞检测功能
+  -  [GObj3DHit](#GObj3DHit)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DHit
+     3D碰撞检测类，用于管理3D场景中的对象碰撞检测和事件触发
+  -  [GObj3DShape](#GObj3DShape)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DShape
+     3D基础形状对象类，用于在3D场景中创建和显示基本几何体
+  -  [GObj3DLine](#GObj3DLine)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DLine
+     3D线条绘制类，用于在3D场景中创建和显示线条、坐标轴和文本标注
+  -  [GObjMeshLod](#GObjMeshLod)      **继承** ：GObj/GObjShow/GObj3DShow/GObjMeshLod
+     3D网格LOD优化类，用于自动简化网格模型并支持不同细节层次的显示
+  -  [GMcWorldObj](#GMcWorldObj)      **继承** ：GObj/GMcWorldObj
+     MC世界对象，管理体素世界的创建、加载和编辑
+  -  [GObj3DPixelMc](#GObj3DPixelMc)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DPixelMc
+     3D像素MC对象，用于渲染和管理体素世界的显示
+  -  [GMcTreeMaker](#GMcTreeMaker)      **继承** ：GObj/GMcTreeMaker
+     MC树结构生成器，用于创建和管理体素树结构
+  -  [GSandAppWnd](#GSandAppWnd)      **继承** ：GObj/GObjShow/GSandAppWnd
+     沙盒应用窗口类，用于创建和管理沙盒环境中的应用窗口
+  -  [GObj3DSandBox](#GObj3DSandBox)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DSandBox
+     3D沙盒环境类，用于创建和管理3D场景中的脚本执行环境
+  -  [GObj3DDepMap](#GObj3DDepMap)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DDepMap
+     深度图渲染类，用于生成和管理3D场景深度图以实现遮挡剔除
+  -  [GObj3DParticle](#GObj3DParticle)      **继承** ：GObj/GObjShow/GObj3DShow/GObj3DParticle
+     3D粒子系统类，用于创建和管理3D场景中的粒子特效
+  -  [GWebFile](#GWebFile)      **继承** ：GObj/GWebFile
+     HTTP文件下载类，提供多线程分块下载、断点续传和进度通知功能
+  -  [GSandBoxWinApp](#GSandBoxWinApp)      **继承** ：GObj/GObjShow/GObj2DWnd/GBoxShowApp/GSandBoxWinApp
+     
+  -  [GWebLink](#GWebLink)      **继承** ：GObj/GWebLink
+     网络链接类，提供HTTP/HTTPS网页访问、数据传输和请求功能
 ##  eve
 标准库,脚本可以直接调用库里的函数,无需写作用域.主要提供系统控制、任务管理和高级数学计算功能
-  -  [:task](#:task)  -  任务控制接口类，提供脚本任务调度和管理功能
-  -  [:math](#:math)  -  数学函数库类，提供各种随机数生成和3D数学计算功能
+  -  [:task](#:task)      **路径** ：:task
+     任务控制接口类，提供脚本任务调度和管理功能
+  -  [:math](#:math)      **路径** ：:math
+     数学函数库类，提供各种随机数生成和3D数学计算功能
 ##  fixcall
 标准库,脚本可以直接调用库里的函数,无需写作用域.主要提供基础数学运算、颜色处理和基础数据处理等功能
-  -  [:fixcal](#:fixcal)  -  基础数学计算和格式化函数库，提供数值运算、颜色处理和字符串格式化功能
+  -  [:fixcal](#:fixcal)      **路径** ：:fixcal
+     基础数学计算和格式化函数库，提供数值运算、颜色处理和字符串格式化功能
 ##  namespace
 命名空间,脚本可以通过 命名空间::函数名 的格式来调用库中的函数
-  -  [file](#file)  -  文件系统接口类，提供文件操作的核心功能
-  -  [sys](#sys)  -  系统接口类，提供系统级操作、公共数据存储和设备信息访问功能
-  -  [csvr](#csvr)  -  网络客户端服务器通信任务类，提供RPC功能和分布式通信
-  -  [netapi](#netapi)  -  网络API接口类，提供服务器查找和远程函数调用功能
-  -  [syshelp](#syshelp)  -  系统帮助类，提供类信息查询、脚本反射和配置管理功能
-  -  [font](#font)  -  字体任务作用域，提供字体管理功能，包括清除所有字体缓存、注册FreeType字体和图像字体
-  -  [showcmd](#showcmd)  -  显示命令处理类，用于创建和管理渲染指令
-  -  [touch](#touch)  -  触摸事件管理任务类，处理触摸和鼠标事件
-  -  [keyboard](#keyboard)  -  键盘事件管理任务类，处理键盘输入和焦点控制
-  -  [res](#res)  -  资源作用域类，提供沙盒环境中的资源管理功能，支持资源ID获取、创建、数据读取和文件访问等操作
-  -  [ease](#ease)  -  这个类实现了缓动动画效果控制，用于创建和管理对象属性的平滑过渡动画，支持多种缓动模式
-  -  [showpath](#showpath)  -  显示路径处理类，用于生成和转换UI元素显示路径的坐标系统
-  -  [snd](#snd)  -  音频任务作用域，提供沙盒环境中音频播放和控制的接口，支持音频资源播放、停止等操作
-  -  [web](#web)  -  
-  -  [locapi](#locapi)  -  本地API接口类，提供服务注册、查询和消息发送功能
+  -  [file](#file)      **路径** ：file
+     文件系统接口类，提供文件操作的核心功能
+  -  [sys](#sys)      **路径** ：sys:task
+     系统接口类，提供系统级操作、公共数据存储和设备信息访问功能
+  -  [csvr](#csvr)      **路径** ：csvr:task
+     网络客户端服务器通信任务类，提供RPC功能和分布式通信
+  -  [netapi](#netapi)      **路径** ：netapi:task
+     网络API接口类，提供服务器查找和远程函数调用功能
+  -  [syshelp](#syshelp)      **路径** ：syshelp:task
+     系统帮助类，提供类信息查询、脚本反射和配置管理功能
+  -  [font](#font)      **路径** ：font:task
+     字体任务作用域，提供字体管理功能，包括清除所有字体缓存、注册FreeType字体和图像字体
+  -  [showcmd](#showcmd)      **路径** ：showcmd:task
+     显示命令处理类，用于创建和管理渲染指令
+  -  [touch](#touch)      **路径** ：touch:task
+     触摸事件管理任务类，处理触摸和鼠标事件
+  -  [keyboard](#keyboard)      **路径** ：keyboard:task
+     键盘事件管理任务类，处理键盘输入和焦点控制
+  -  [res](#res)      **路径** ：res
+     资源作用域类，提供沙盒环境中的资源管理功能，支持资源ID获取、创建、数据读取和文件访问等操作
+  -  [ease](#ease)      **路径** ：ease
+     这个类实现了缓动动画效果控制，用于创建和管理对象属性的平滑过渡动画，支持多种缓动模式
+  -  [showpath](#showpath)      **路径** ：showpath:showhelp
+     显示路径处理类，用于生成和转换UI元素显示路径的坐标系统
+  -  [snd](#snd)      **路径** ：snd:task
+     音频任务作用域，提供沙盒环境中音频播放和控制的接口，支持音频资源播放、停止等操作
+  -  [web](#web)      **路径** ：web:task
+     
+  -  [locapi](#locapi)      **路径** ：locapi:task
+     本地API接口类，提供服务注册、查询和消息发送功能
 ##  ptrex
 ptrex 是特殊的对象引用类型，用于安全地引用和操作游戏中的复杂对象（如模型、材质、粒子系统等）。它提供了引用计数机制和类型安全检查，确保对象正确管理。通过 ptrex，脚本可以创建、操作和共享游戏引擎中的核心对象
-  -  [csvr::addr](#csvr::addr)  -  网络地址对象类，用于建立和管理远程服务器连接
-  -  [rsa::publickey](#rsa::publickey)  -  这个类实现了RSA公钥解密功能，负责使用公钥解密由对应私钥加密的数据，支持标准RSA非对称加密
-  -  [rsa::privateKey](#rsa::privateKey)  -  这个类实现了RSA私钥加密功能，负责生成密钥对并使用私钥加密数据，支持1024位RSA加密标准
-  -  [file::ptr](#file::ptr)  -  文件指针操作类，提供底层文件读写功能
-  -  [strtree](#strtree)  -  字符串树结构类，提供层次化的数据存储和访问功能
-  -  [con2d::std](#con2d::std)  -  标准二维布局控制器类，用于管理对象的位置和大小
-  -  [con2d:base](#con2d:base)  -  界面布局容器基类，负责管理UI组件的位置和边框布局
-  -  [con2d::tab](#con2d::tab)  -  表格式二维布局控制器类，用于管理按列排列的对象布局
-  -  [ani2d](#ani2d)  -  2D动画资源指针类，用于管理和操作2D动画资源
-  -  [resdatptr](#resdatptr)  -  
-  -  [img](#img)  -  图像资源类，用于管理和操作图像数据
-  -  [sndbuf](#sndbuf)  -  音频缓冲区类，负责加载、保存和播放音频资源，提供音频数据的基本操作和播放控制功能
-  -  [font::text](#font::text)  -  文本渲染类，用于管理字体、文本内容和绘制属性
-  -  [draw::cmdsz](#draw::cmdsz)  -  绘图命令集合类，用于管理和执行渲染命令
-  -  [material](#material)  -  材质管理类，用于定义和处理3D模型的PBR材质属性和贴图
-  -  [ani3d](#ani3d)  -  3D动画资源指针类，用于管理和操作3D模型、动画、材质和节点数据
-  -  [particle](#particle)  -  粒子定义类，用于管理粒子系统的整体配置和组成
-  -  [atom::Atom](#atom::Atom)  -  粒子,基本粒子
-  -  [.atombase](#.atombase)  -  粒子原子基类，粒子系统的基本构建单元
-  -  [atom::Emitter](#atom::Emitter)  -  点发生器
-  -  [.atomctrl](#.atomctrl)  -  粒子控制基类，用于控制粒子的运动、生成和特性
-  -  [atom::ELine](#atom::ELine)  -  线形发生器
-  -  [atom::ECircle](#atom::ECircle)  -  圆形发生器
-  -  [atom::EBox](#atom::EBox)  -  盒形发生器
-  -  [atom::ESphere](#atom::ESphere)  -  球形发生器
-  -  [atom::Fire](#atom::Fire)  -  目标飞行,粒子控制器
-  -  [atom::Roto](#atom::Roto)  -  旋转,粒子控制器
-  -  [atom::Jet](#atom::Jet)  -  加速,粒子控制器
-  -  [atom::Gravity](#atom::Gravity)  -  重力,粒子控制器
-  -  [atom::Vortex](#atom::Vortex)  -  漩涡
-  -  [atom::GWell](#atom::GWell)  -  引力点
-  -  [atom::Snd](#atom::Snd)  -  声音,控制器
-  -  [atom::Track](#atom::Track)  -  追踪
-  -  [atom::ActRibbon](#atom::ActRibbon)  -  动作条带,基本粒子
-  -  [atom::Ribbon](#atom::Ribbon)  -  粒子条带,基本粒子
-  -  [atom::R_BindObj](#atom::R_BindObj)  -  条带控制器
-  -  [atom::R_Twist](#atom::R_Twist)  -  条带缠绕控制器
-  -  [atom::Snow](#atom::Snow)  -  粒子雪花系统类，用于创建和管理雪花粒子特效
+  -  [csvr::addr](#csvr::addr)      **路径** ：ptrex/csvr::addr
+     网络地址对象类，用于建立和管理远程服务器连接
+  -  [rsa::publickey](#rsa::publickey)      **路径** ：ptrex/rsa::publickey
+     这个类实现了RSA公钥解密功能，负责使用公钥解密由对应私钥加密的数据，支持标准RSA非对称加密
+  -  [rsa::privateKey](#rsa::privateKey)      **路径** ：ptrex/rsa::publickey/rsa::privateKey
+     这个类实现了RSA私钥加密功能，负责生成密钥对并使用私钥加密数据，支持1024位RSA加密标准
+  -  [file::ptr](#file::ptr)      **路径** ：ptrex/file::ptr
+     文件指针操作类，提供底层文件读写功能
+  -  [strtree](#strtree)      **路径** ：ptrex/strtree
+     字符串树结构类，提供层次化的数据存储和访问功能
+  -  [con2d::std](#con2d::std)      **路径** ：ptrex/con2d:base/con2d::std
+     标准二维布局控制器类，用于管理对象的位置和大小
+  -  [con2d:base](#con2d:base)      **路径** ：ptrex/con2d:base
+     界面布局容器基类，负责管理UI组件的位置和边框布局
+  -  [con2d::tab](#con2d::tab)      **路径** ：ptrex/con2d:base/con2d::tab
+     表格式二维布局控制器类，用于管理按列排列的对象布局
+  -  [ani2d](#ani2d)      **路径** ：ptrex/resdatptr/ani2d
+     2D动画资源指针类，用于管理和操作2D动画资源
+  -  [resdatptr](#resdatptr)      **路径** ：ptrex/resdatptr
+     
+  -  [img](#img)      **路径** ：ptrex/resdatptr/img
+     图像资源类，用于管理和操作图像数据
+  -  [sndbuf](#sndbuf)      **路径** ：ptrex/resdatptr/sndbuf
+     音频缓冲区类，负责加载、保存和播放音频资源，提供音频数据的基本操作和播放控制功能
+  -  [font::text](#font::text)      **路径** ：ptrex/font::text
+     文本渲染类，用于管理字体、文本内容和绘制属性
+  -  [draw::cmdsz](#draw::cmdsz)      **路径** ：ptrex/draw::cmdsz
+     绘图命令集合类，用于管理和执行渲染命令
+  -  [material](#material)      **路径** ：ptrex/material
+     材质管理类，用于定义和处理3D模型的PBR材质属性和贴图
+  -  [ani3d](#ani3d)      **路径** ：ptrex/resdatptr/ani3d
+     3D动画资源指针类，用于管理和操作3D模型、动画、材质和节点数据
+  -  [particle](#particle)      **路径** ：ptrex/resdatptr/particle
+     粒子定义类，用于管理粒子系统的整体配置和组成
+  -  [atom::Atom](#atom::Atom)      **路径** ：ptrex/.atombase/atom::Atom
+     粒子,基本粒子
+  -  [.atombase](#.atombase)      **路径** ：ptrex/.atombase
+     粒子原子基类，粒子系统的基本构建单元
+  -  [atom::Emitter](#atom::Emitter)      **路径** ：ptrex/.atomctrl/atom::Emitter
+     点发生器
+  -  [.atomctrl](#.atomctrl)      **路径** ：ptrex/.atomctrl
+     粒子控制基类，用于控制粒子的运动、生成和特性
+  -  [atom::ELine](#atom::ELine)      **路径** ：ptrex/.atomctrl/atom::Emitter/atom::ELine
+     线形发生器
+  -  [atom::ECircle](#atom::ECircle)      **路径** ：ptrex/.atomctrl/atom::Emitter/atom::ECircle
+     圆形发生器
+  -  [atom::EBox](#atom::EBox)      **路径** ：ptrex/.atomctrl/atom::Emitter/atom::EBox
+     盒形发生器
+  -  [atom::ESphere](#atom::ESphere)      **路径** ：ptrex/.atomctrl/atom::Emitter/atom::ESphere
+     球形发生器
+  -  [atom::Fire](#atom::Fire)      **路径** ：ptrex/.atomctrl/atom::Fire
+     目标飞行,粒子控制器
+  -  [atom::Roto](#atom::Roto)      **路径** ：ptrex/.atomctrl/atom::Roto
+     旋转,粒子控制器
+  -  [atom::Jet](#atom::Jet)      **路径** ：ptrex/.atomctrl/atom::Jet
+     加速,粒子控制器
+  -  [atom::Gravity](#atom::Gravity)      **路径** ：ptrex/.atomctrl/atom::Gravity
+     重力,粒子控制器
+  -  [atom::Vortex](#atom::Vortex)      **路径** ：ptrex/.atomctrl/atom::Vortex
+     漩涡
+  -  [atom::GWell](#atom::GWell)      **路径** ：ptrex/.atomctrl/atom::GWell
+     引力点
+  -  [atom::Snd](#atom::Snd)      **路径** ：ptrex/.atomctrl/atom::Snd
+     声音,控制器
+  -  [atom::Track](#atom::Track)      **路径** ：ptrex/.atomctrl/atom::Track
+     追踪
+  -  [atom::ActRibbon](#atom::ActRibbon)      **路径** ：ptrex/.atombase/atom::ActRibbon
+     动作条带,基本粒子
+  -  [atom::Ribbon](#atom::Ribbon)      **路径** ：ptrex/.atombase/atom::Ribbon
+     粒子条带,基本粒子
+  -  [atom::R_BindObj](#atom::R_BindObj)      **路径** ：ptrex/.atomctrl/atom::R_BindObj
+     条带控制器
+  -  [atom::R_Twist](#atom::R_Twist)      **路径** ：ptrex/.atomctrl/atom::R_Twist
+     条带缠绕控制器
+  -  [atom::Snow](#atom::Snow)      **路径** ：ptrex/.atombase/atom::Snow
+     粒子雪花系统类，用于创建和管理雪花粒子特效
 ##  varkind
 varkind 定义了 Gbox 脚本中的变量类型系统。Gbox 支持多种变量类型，包括基本类型（int,float,bool,string）和复杂类型（var、obj、ptrex）。变量类型系统确保脚本中的数据操作安全有效，并提供了类型转换和检查功能
-  -  [all kind](#all kind)  -  
-  -  [string](#string)  -  字符串变量类，提供字符串操作和转换功能
-  -  [var](#var)  -  集合变量类，提供命名值管理和JSON序列化功能
-  -  [vec2](#vec2)  -  二维向量变量类，提供二维坐标和向量操作
-  -  [vec3](#vec3)  -  三维向量变量类，提供三维坐标和向量操作
-  -  [vec4](#vec4)  -  四维向量变量类，提供四元数旋转和矩形操作功能
-  -  [ptr64](#ptr64)  -  64位指针变量类，用于远程对象和系统对象的引用管理
-  -  [script](#script)  -  用于封装、编译和执行脚本代码的变量类型，提供表达式解析和动态执行功能
-  -  [bin](#bin)  -  二进制数据变量类，用于存储和操作二进制数据
-  -  [ptrex](#ptrex)  -  扩展指针变量类，提供对对象指针的引用计数和类型检查功能
-  -  [mat3](#mat3)  -  矩阵3变量类，提供3x3矩阵运算和矩阵变换功能
-  -  [mat4](#mat4)  -  4x4矩阵变量类，提供矩阵变换和3D空间操作功能
+  -  [all kind](#all kind)      **路径** ：var:void
+     
+  -  [string](#string)      **路径** ：var:string
+     字符串变量类，提供字符串操作和转换功能
+  -  [var](#var)      **路径** ：var:var
+     集合变量类，提供命名值管理和JSON序列化功能
+  -  [vec2](#vec2)      **路径** ：var:vec2
+     二维向量变量类，提供二维坐标和向量操作
+  -  [vec3](#vec3)      **路径** ：var:vec3
+     三维向量变量类，提供三维坐标和向量操作
+  -  [vec4](#vec4)      **路径** ：var:vec4
+     四维向量变量类，提供四元数旋转和矩形操作功能
+  -  [ptr64](#ptr64)      **路径** ：var:ptr64
+     64位指针变量类，用于远程对象和系统对象的引用管理
+  -  [script](#script)      **路径** ：var:script
+     用于封装、编译和执行脚本代码的变量类型，提供表达式解析和动态执行功能
+  -  [bin](#bin)      **路径** ：var:bin
+     二进制数据变量类，用于存储和操作二进制数据
+  -  [ptrex](#ptrex)      **路径** ：var:ptrex
+     扩展指针变量类，提供对对象指针的引用计数和类型检查功能
+  -  [mat3](#mat3)      **路径** ：var:mat3
+     矩阵3变量类，提供3x3矩阵运算和矩阵变换功能
+  -  [mat4](#mat4)      **路径** ：var:mat4
+     4x4矩阵变量类，提供矩阵变换和3D空间操作功能
 
-<!-- 目录结束了 -->
 ----
 ### GObj
 **类型**：[class](#class)　　　　**继承** ：[GObj](#GObj)

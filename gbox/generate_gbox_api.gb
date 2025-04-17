@@ -158,12 +158,14 @@ void foo(){
 		mem=GetKeyWordMem(v[0]);
 		if(mem.length>0) shead+=mem+"\r\n";
 		for subsp in v[1]{
-			shead+="  -  ["+subsp.m_sName+"](#"+subsp.m_sName+")  -  "+subsp.m_sMem+"\r\n";
+			shead+="  -  ["+subsp.m_sName+"](#"+subsp.m_sName+")      ";
+			shead+=((subsp.m_sKind=="class")?"**继承** ：":"**路径** ：")+subsp.m_sPath+"\r\n";
+			shead+="     "+subsp.m_sMem+"\r\n";
 			s+=subsp.GetMDText();
 			if(subsp.m_sKind=="eve") ?s;
 		}
 	}
 	shead+="\r\n----\r\n"+s;
-	file::SaveText(shead,$+"gbox_api.md");
+	file::SaveText(shead,$+"doc/gbox_api.md");
 }
 foo();
