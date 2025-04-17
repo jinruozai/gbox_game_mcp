@@ -4,10 +4,10 @@ import asyncio
 import threading
 import argparse
 from mcp.server.fastmcp import FastMCP
-from gboxtcp import GBoxTCP
 import time
 from typing import Dict, List, Union
 from mcp.server.lowlevel.server import NotificationOptions
+from gbox.gbox_tcp import GBoxTCP
 from gbox.gbox_help import GboxHelp
 # 定义全局变量
 # 全局配置
@@ -145,7 +145,7 @@ def get_gbox_syntax_guide() -> str:
     return _gbox_help.get_syntax_guide()
 
 @mcp.tool()
-def generate_ai_image(prompt: str, workflow_file: str = None) -> Dict[str, Union[List[str], List[str]]]:
+def generate_ai_image(prompt: str, workflow_file: str = None, output_dir: str = None) -> Dict[str, Union[List[str], List[str]]]:
     """使用 ComfyUI 根据文本提示生成 AI 图像。
     
     使用场景：
@@ -157,17 +157,27 @@ def generate_ai_image(prompt: str, workflow_file: str = None) -> Dict[str, Union
     Args:
         prompt: 描述想要生成的图像内容的文本提示词
         workflow_file: 可选，指定自定义的 ComfyUI 工作流文件路径
+        output_dir: 可选，指定输出目录，默认使用系统临时目录
         
     Returns:
         包含生成图像信息的字典，包括：
         - file_paths: 保存的图像文件路径列表
+        
+    注意:
+        生成完成后，告诉用户生成图片的位置，同时帮用户在编辑器里打开图片
     """
-    from comfyui_workflow.comfyui import ComfyUI
+    from comfyui.comfyui import ComfyUI
+    import tempfile
     
     try:
         # 设置输出目录
-        output_dir = os.path.join(os.path.dirname(__file__), "generated_images")
-        os.makedirs(output_dir, exist_ok=True)
+        if output_dir is None:
+            # 创建临时目录
+            temp_dir = tempfile.mkdtemp(prefix="gbox_comfyui_")
+            output_dir = temp_dir
+        else:
+            # 使用用户指定的目录
+            os.makedirs(output_dir, exist_ok=True)
         
         # 创建ComfyUI实例，使用配置的地址
         comfy = ComfyUI(config['comfyui_ip'])
@@ -205,7 +215,7 @@ if __name__ == "__main__":
     params = parse_args()
     
     # 初始化GBoxTCP实例
-    _gbox_tcp = GBoxTCP(gbox=params['gbox_ip'])
+    _gbox_tcp = GBoxTCP(params['gbox_ip'])
 
     # 初始化工具
     init_tools()

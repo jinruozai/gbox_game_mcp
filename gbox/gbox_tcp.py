@@ -4,7 +4,7 @@ import time
 import json
 
 class GBoxTCP:
-    def __init__(self, gbox='127.0.0.1:30080'):
+    def __init__(self, gbox_ip='127.0.0.1:30080'):
         """初始化GBoxTCP实例
         
         Args:
@@ -12,7 +12,7 @@ class GBoxTCP:
         """
         # 解析地址
         try:
-            self.ip, port = gbox.split(':')
+            self.ip, port = gbox_ip.split(':')
             self.port = int(port)
         except ValueError:
             # 如果解析失败，使用默认值
@@ -26,7 +26,7 @@ class GBoxTCP:
         self.response_event = threading.Event()
         self.last_response = None
         self.waiting_for_response = False
-        
+        print(f"初始化GBoxTCP实例: {self.ip}:{self.port}")
         # 初始化时直接连接
         self.connect()
 

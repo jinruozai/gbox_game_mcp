@@ -1,8 +1,11 @@
 class GboxHelp:
     def __init__(self):
         """初始化 GboxHelp 类，读取必要的文档文件"""
-        self.api_doc_path = "doc/gbox_api.md"
-        self.example_doc_path = "doc/gbox_example.gb"
+        import os
+        # 使用绝对路径
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.api_doc_path = os.path.join(base_dir, "gbox", "doc", "gbox_api.md")
+        self.example_doc_path = os.path.join(base_dir, "gbox", "doc", "gbox_example.gb")
         
         # 初始化变量
         self._api_content = ""

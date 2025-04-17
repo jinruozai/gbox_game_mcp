@@ -132,10 +132,10 @@ class ComfyUI:
             print(f"使用指定的工作流文件: {workflow_file}")
         else:
             # 使用默认路径
-            workflow_file = os.path.join(os.path.dirname(__file__), "sd_base.json")
+            workflow_file = os.path.join(os.path.dirname(__file__), "workflow", "sd_base.json")
             if not os.path.exists(workflow_file):
                 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                workflow_file = os.path.join(base_dir, "comfyui", "sd_base.json")
+                workflow_file = os.path.join(base_dir, "comfyui", "workflow", "sd_base.json")
             print(f"使用默认工作流文件: {workflow_file}")
         
         try:
@@ -189,6 +189,30 @@ class ComfyUI:
                         print(f"保存图像失败: {e}")
             
             print(f"\n成功生成并保存 {image_count} 张图像")
+            
+            # 尝试自动打开第一张图片
+            if saved_paths:
+                try:
+                    first_image_path = saved_paths[0]
+                    # 尝试使用系统默认方式打开图片
+                    import subprocess
+                    import platform
+                    
+                    system = platform.system()
+                    try:
+                        if system == 'Darwin':  # macOS
+                            subprocess.run(['open', first_image_path], check=True)
+                        elif system == 'Windows':
+                            os.startfile(first_image_path)
+                        elif system == 'Linux':
+                            subprocess.run(['xdg-open', first_image_path], check=True)
+                        print(f"已尝试在系统默认应用中打开图片: {first_image_path}")
+                    except Exception as e:
+                        # 如果系统命令打开失败，不要报错，只打印信息
+                        print(f"自动打开图片失败: {e}")
+                except Exception as e:
+                    # 如果任何部分失败，不影响主功能
+                    print(f"尝试自动打开图片时出错: {e}")
             
         except Exception as e:
             print(f"执行工作流时出错: {e}")
