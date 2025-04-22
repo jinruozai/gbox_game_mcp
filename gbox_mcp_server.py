@@ -164,7 +164,7 @@ def generate_ai_image(prompt: str, workflow_file: str = None, output_dir: str = 
         - file_paths: 保存的图像文件路径列表
         
     注意:
-        生成完成后，告诉用户生成图片的位置，同时帮用户在编辑器里打开图片
+        生成完成后，告诉用户生成图片的位置，同时帮用户在当前编辑器里打开图片
     """
     from comfyui.comfyui import ComfyUI
     import tempfile
