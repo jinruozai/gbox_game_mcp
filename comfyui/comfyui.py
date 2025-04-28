@@ -15,6 +15,7 @@ import os
 import argparse
 import io
 from PIL import Image
+import time
 
 # ComfyUI服务器地址
 server_address = "127.0.0.1:8188"
@@ -45,26 +46,53 @@ class ComfyUI:
         output_images = {}
         current_node = ""
         
-        while True:
-            out = ws.recv()
-            if isinstance(out, str):
-                message = json.loads(out)
-                if message['type'] == 'executing':
-                    data = message['data']
-                    if data['prompt_id'] == prompt_id:
-                        if data['node'] is None:
-                            print("工作流执行完成!")
-                            break  # 执行完成
-                        else:
-                            current_node = data['node']
-                            print(f"正在执行节点: {current_node}")
-            else:
-                # 这是图像数据
-                print(f"收到来自节点 '{current_node}' 的图像数据")
-                images_output = output_images.get(current_node, [])
-                images_output.append(out[8:])  # 去掉WebSocket图像前缀
-                output_images[current_node] = images_output
+        # 设置超时和监控机制
+        img_received = False
+        last_msg_time = time.time()
+        no_msg_timeout = 15  # 15秒没有新消息则认为可能已完成
         
+        while True:
+            try:
+                out = ws.recv()
+                last_msg_time = time.time()
+                
+                if isinstance(out, str):
+                    message = json.loads(out)
+                    
+                    if message['type'] == 'executing':
+                        data = message['data']
+                        
+                        if data['prompt_id'] == prompt_id:
+                            if data['node'] is None:
+                                print("工作流执行完成!")
+                                break  # 执行完成
+                            else:
+                                current_node = data['node']
+                                print(f"正在执行节点: {current_node}")
+                else:
+                    # 这是图像数据
+                    print(f"收到来自节点 '{current_node}' 的图像数据")
+                    images_output = output_images.get(current_node, [])
+                    images_output.append(out[8:])  # 去掉WebSocket图像前缀
+                    output_images[current_node] = images_output
+                    img_received = True
+                    
+                # 检查是否已收到图像且一段时间没有新消息，可能服务器未发送明确的完成消息
+                current_time = time.time()
+                if img_received and (current_time - last_msg_time) > no_msg_timeout:
+                    print(f"已超过 {no_msg_timeout} 秒没有新消息，且已收到图像数据，认为工作流可能已完成")
+                    break
+                    
+            except websocket.WebSocketTimeoutException as e:
+                print(f"WebSocket超时: {e}")
+                if img_received:
+                    print("已接收图像数据，尽管超时，继续处理")
+                    break
+                else:
+                    raise  # 如果还没有收到任何图像，则重新抛出异常
+        
+        if output_images:
+            print(f"已收集图像数据，准备处理")
         return output_images
 
     def add_websocket_node(self, workflow_data):
@@ -150,9 +178,7 @@ class ComfyUI:
             if "6" in workflow_data and "inputs" in workflow_data["6"] and "text" in workflow_data["6"]["inputs"]:
                 old_prompt = workflow_data["6"]["inputs"]["text"]
                 workflow_data["6"]["inputs"]["text"] = prompt_text
-                print(f"已修改提示词:")
-                print(f"原始: {old_prompt}")
-                print(f"新的: {prompt_text}")
+                print(f"提示词: {prompt_text}")
             else:
                 print("警告: 未找到提示词节点，将使用原始提示词")
         else:
@@ -165,13 +191,24 @@ class ComfyUI:
         print(f"连接WebSocket服务器: ws://{self.server_address}/ws?clientId={self.client_id}")
         ws = websocket.WebSocket()
         
+        # 设置超时时间，避免永久等待
+        ws.settimeout(60)  # 设置60秒超时
+        
         saved_paths = []
         
         try:
             ws.connect(f"ws://{self.server_address}/ws?clientId={self.client_id}")
             
             # 获取图像
-            images = self.get_images(ws, workflow_data)
+            try:
+                images = self.get_images(ws, workflow_data)
+            except websocket.WebSocketTimeoutException:
+                print("警告: WebSocket接收消息超时，可能是服务器没有发送完成消息")
+                print("尝试继续处理已收到的图像")
+                images = {}  # 如果出现超时，使用空字典
+            except Exception as e:
+                print(f"获取图像时出错: {e}")
+                raise
             
             # 保存图像
             image_count = 0
@@ -183,7 +220,9 @@ class ComfyUI:
                         output_path = os.path.join(output_dir, output_name)
                         image.save(output_path)
                         saved_paths.append(output_path)
-                        print(f"图像已保存: {output_path}")
+                        # 获取并显示保存图片的完整绝对路径
+                        full_output_path = os.path.abspath(output_path)
+                        print(f"图像已保存: {full_output_path}")
                         image_count += 1
                     except Exception as e:
                         print(f"保存图像失败: {e}")
@@ -206,7 +245,9 @@ class ComfyUI:
                             os.startfile(first_image_path)
                         elif system == 'Linux':
                             subprocess.run(['xdg-open', first_image_path], check=True)
-                        print(f"已尝试在系统默认应用中打开图片: {first_image_path}")
+                        # 获取并显示图片的完整绝对路径
+                        full_image_path = os.path.abspath(first_image_path)
+                        print(f"已尝试在系统默认应用中打开图片: {full_image_path}")
                     except Exception as e:
                         # 如果系统命令打开失败，不要报错，只打印信息
                         print(f"自动打开图片失败: {e}")
@@ -218,7 +259,10 @@ class ComfyUI:
             print(f"执行工作流时出错: {e}")
             raise
         finally:
-            ws.close()
+            try:
+                ws.close()
+            except:
+                pass
         
         return saved_paths
 
