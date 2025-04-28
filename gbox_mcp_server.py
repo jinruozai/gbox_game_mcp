@@ -155,7 +155,7 @@ def generate_ai_image(prompt: str, workflow_file: str = None, output_dir: str = 
     - 根据用户输入的描述创建可视化内容
     
     Args:
-        prompt: 描述想要生成的图像内容的文本提示词
+        prompt: 描述想要生成的图像内容的ComfyUI 提示词
         workflow_file: 可选，指定自定义的 ComfyUI 工作流文件路径
         output_dir: 可选，指定输出目录，默认使用系统临时目录
         

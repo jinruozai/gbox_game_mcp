@@ -145,7 +145,7 @@ class ComfyUI:
         
         Args:
             prompt_text: 提示词文本
-            workflow_path: 工作流文件路径
+            workflow_path: 工作流文件名或路径
             output_dir: 输出目录
         
         Returns:
@@ -155,9 +155,40 @@ class ComfyUI:
         os.makedirs(output_dir, exist_ok=True)
         
         # 加载工作流JSON文件
-        if workflow_path and os.path.exists(workflow_path):
-            workflow_file = workflow_path
-            print(f"使用指定的工作流文件: {workflow_file}")
+        if workflow_path:
+            # 首先检查传入的是否为完整路径
+            if os.path.exists(workflow_path):
+                workflow_file = workflow_path
+                print(f"使用指定的工作流文件: {workflow_file}")
+            else:
+                # 尝试作为文件名在workflow目录中查找
+                workflow_dir = os.path.join(os.path.dirname(__file__), "workflow")
+                potential_file = os.path.join(workflow_dir, workflow_path)
+                
+                if os.path.exists(potential_file):
+                    workflow_file = potential_file
+                    print(f"使用工作流文件: {workflow_file}")
+                else:
+                    # 尝试添加.json扩展名
+                    if not workflow_path.endswith('.json'):
+                        potential_file_with_ext = os.path.join(workflow_dir, f"{workflow_path}.json")
+                        if os.path.exists(potential_file_with_ext):
+                            workflow_file = potential_file_with_ext
+                            print(f"使用工作流文件: {workflow_file}")
+                        else:
+                            # 如果都找不到，使用默认工作流
+                            print(f"警告: 找不到工作流文件 '{workflow_path}'，使用默认工作流")
+                            workflow_file = os.path.join(workflow_dir, "sd_base.json")
+                            if not os.path.exists(workflow_file):
+                                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                                workflow_file = os.path.join(base_dir, "comfyui", "workflow", "sd_base.json")
+                    else:
+                        # 如果找不到，使用默认工作流
+                        print(f"警告: 找不到工作流文件 '{workflow_path}'，使用默认工作流")
+                        workflow_file = os.path.join(workflow_dir, "sd_base.json")
+                        if not os.path.exists(workflow_file):
+                            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                            workflow_file = os.path.join(base_dir, "comfyui", "workflow", "sd_base.json")
         else:
             # 使用默认路径
             workflow_file = os.path.join(os.path.dirname(__file__), "workflow", "sd_base.json")
@@ -173,11 +204,18 @@ class ComfyUI:
             print(f"加载工作流文件失败: {e}")
             raise
         
-        # 如果提供了提示词，修改工作流
+        # 如果文件不是以提示词节点，尝试找到合适的提示词节点
+        prompt_node = None
         if prompt_text:
-            if "6" in workflow_data and "inputs" in workflow_data["6"] and "text" in workflow_data["6"]["inputs"]:
-                old_prompt = workflow_data["6"]["inputs"]["text"]
-                workflow_data["6"]["inputs"]["text"] = prompt_text
+            # 首先尝试找到可能的提示词节点
+            for node_id, node in workflow_data.items():
+                if node.get("class_type") == "CLIPTextEncode" and "inputs" in node and "text" in node["inputs"]:
+                    if not prompt_node or node_id == "6":  # 优先使用id为6的节点，这是常见的正向提示词节点
+                        prompt_node = node_id
+            
+            if prompt_node:
+                old_prompt = workflow_data[prompt_node]["inputs"]["text"]
+                workflow_data[prompt_node]["inputs"]["text"] = prompt_text
                 print(f"提示词: {prompt_text}")
             else:
                 print("警告: 未找到提示词节点，将使用原始提示词")
