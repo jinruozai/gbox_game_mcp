@@ -16,6 +16,7 @@ import argparse
 import io
 from PIL import Image
 import time
+import datetime
 
 # ComfyUI服务器地址
 server_address = "127.0.0.1:8188"
@@ -151,13 +152,15 @@ class ComfyUI:
         Returns:
             保存的图像路径列表
         """
-        # 确保输出目录存在
         # 设置输出目录
         if output_dir is None:
             import tempfile
-            # 创建临时目录
-            temp_dir = tempfile.mkdtemp(prefix="gbox_comfyui_")
+            import os.path
+            # 使用固定的临时目录
+            temp_dir = os.path.join(tempfile.gettempdir(), "gbox_comfyui_images")
+            os.makedirs(temp_dir, exist_ok=True)
             output_dir = temp_dir
+            print(f"使用临时目录: {output_dir}")
         else:
             # 使用用户指定的目录
             os.makedirs(output_dir, exist_ok=True)
@@ -258,11 +261,18 @@ class ComfyUI:
             
             # 保存图像
             image_count = 0
+            
+            # 生成唯一标识符
+            # 使用时间戳和随机UUID组合生成唯一标识符
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            unique_id = str(uuid.uuid4())[:8]  # 使用UUID的前8位
+            
             for node_id, image_list in images.items():
                 for i, image_data in enumerate(image_list):
                     try:
                         image = Image.open(io.BytesIO(image_data))
-                        output_name = f"ws_image_{image_count}.png"
+                        # 使用时间戳、唯一ID和计数器组合生成唯一文件名
+                        output_name = f"comfyui_{timestamp}_{unique_id}_{image_count}.png"
                         output_path = os.path.join(output_dir, output_name)
                         image.save(output_path)
                         saved_paths.append(output_path)
@@ -312,7 +322,7 @@ class ComfyUI:
         
         return saved_paths
 
-def run_comfyui(prompt=None, output_dir="output", workflow_file=None, server_addr=None):
+def run_comfyui(prompt=None, output_dir=None, workflow_file=None, server_addr=None):
     """运行ComfyUI生成图像的便捷函数"""
     comfy = ComfyUI(server_addr)
     return comfy.generate_images(prompt, workflow_file, output_dir)
@@ -321,8 +331,8 @@ if __name__ == "__main__":
     # 解析命令行参数
     parser = argparse.ArgumentParser(description='执行ComfyUI工作流并实时获取图像')
     parser.add_argument('prompt', nargs='?', help='可选的提示词，如不提供则使用原始提示词')
-    parser.add_argument('--output', '-o', default="output", help='图像输出目录')
-    parser.add_argument('--workflow', '-w', help='工作流JSON文件路径，如不提供则使用默认路径')
+    parser.add_argument('--output', '-o', help='图像输出目录，如不提供则使用临时目录')
+    parser.add_argument('--workflow', '-w', help='工作流JSON文件名或路径，如不提供则使用默认路径')
     parser.add_argument('--server', '-s', help='ComfyUI服务器地址')
     args = parser.parse_args()
     
