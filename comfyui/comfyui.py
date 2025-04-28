@@ -20,6 +20,8 @@ import datetime
 
 # ComfyUI服务器地址
 server_address = "127.0.0.1:8188"
+# 默认工作流文件名
+DEFAULT_WORKFLOW = "flux_schnell_checkpoint.json"
 
 class ComfyUI:
     def __init__(self, server_addr=None):
@@ -164,7 +166,7 @@ class ComfyUI:
         else:
             # 使用用户指定的目录
             os.makedirs(output_dir, exist_ok=True)
-
+        
         # 加载工作流JSON文件
         if workflow_path:
             # 首先检查传入的是否为完整路径
@@ -189,23 +191,23 @@ class ComfyUI:
                         else:
                             # 如果都找不到，使用默认工作流
                             print(f"警告: 找不到工作流文件 '{workflow_path}'，使用默认工作流")
-                            workflow_file = os.path.join(workflow_dir, "sd_base.json")
+                            workflow_file = os.path.join(workflow_dir, DEFAULT_WORKFLOW)
                             if not os.path.exists(workflow_file):
                                 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                                workflow_file = os.path.join(base_dir, "comfyui", "workflow", "sd_base.json")
+                                workflow_file = os.path.join(base_dir, "comfyui", "workflow", DEFAULT_WORKFLOW)
                     else:
                         # 如果找不到，使用默认工作流
                         print(f"警告: 找不到工作流文件 '{workflow_path}'，使用默认工作流")
-                        workflow_file = os.path.join(workflow_dir, "sd_base.json")
+                        workflow_file = os.path.join(workflow_dir, DEFAULT_WORKFLOW)
                         if not os.path.exists(workflow_file):
                             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                            workflow_file = os.path.join(base_dir, "comfyui", "workflow", "sd_base.json")
+                            workflow_file = os.path.join(base_dir, "comfyui", "workflow", DEFAULT_WORKFLOW)
         else:
             # 使用默认路径
-            workflow_file = os.path.join(os.path.dirname(__file__), "workflow", "sd_base.json")
+            workflow_file = os.path.join(os.path.dirname(__file__), "workflow", DEFAULT_WORKFLOW)
             if not os.path.exists(workflow_file):
                 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                workflow_file = os.path.join(base_dir, "comfyui", "workflow", "sd_base.json")
+                workflow_file = os.path.join(base_dir, "comfyui", "workflow", DEFAULT_WORKFLOW)
             print(f"使用默认工作流文件: {workflow_file}")
         
         try:
