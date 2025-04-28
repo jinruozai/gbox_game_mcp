@@ -139,7 +139,7 @@ class ComfyUI:
         print("已添加SaveImageWebsocket节点到工作流")
         return workflow_data
     
-    def generate_images(self, prompt_text=None, workflow_path=None, output_dir="output"):
+    def generate_images(self, prompt_text=None, workflow_path=None, output_dir=None):
         """
         生成图像并返回保存的文件路径列表
         
@@ -152,8 +152,16 @@ class ComfyUI:
             保存的图像路径列表
         """
         # 确保输出目录存在
-        os.makedirs(output_dir, exist_ok=True)
-        
+        # 设置输出目录
+        if output_dir is None:
+            import tempfile
+            # 创建临时目录
+            temp_dir = tempfile.mkdtemp(prefix="gbox_comfyui_")
+            output_dir = temp_dir
+        else:
+            # 使用用户指定的目录
+            os.makedirs(output_dir, exist_ok=True)
+
         # 加载工作流JSON文件
         if workflow_path:
             # 首先检查传入的是否为完整路径

@@ -167,18 +167,8 @@ def generate_ai_image(prompt: str, workflow_file: str = None, output_dir: str = 
         生成完成后，告诉用户生成图片的位置，同时帮用户在当前编辑器里打开图片
     """
     from comfyui.comfyui import ComfyUI
-    import tempfile
     
     try:
-        # 设置输出目录
-        if output_dir is None:
-            # 创建临时目录
-            temp_dir = tempfile.mkdtemp(prefix="gbox_comfyui_")
-            output_dir = temp_dir
-        else:
-            # 使用用户指定的目录
-            os.makedirs(output_dir, exist_ok=True)
-        
         # 创建ComfyUI实例，使用配置的地址
         comfy = ComfyUI(config['comfyui_ip'])
         file_paths = comfy.generate_images(
@@ -186,7 +176,6 @@ def generate_ai_image(prompt: str, workflow_file: str = None, output_dir: str = 
             workflow_path=workflow_file,
             output_dir=output_dir
         )
-        
         # 返回结果
         return {
             "file_paths": file_paths
