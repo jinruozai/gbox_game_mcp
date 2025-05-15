@@ -2,6 +2,11 @@ import socket
 import threading
 import time
 import json
+import sys
+from gbox.logger import get_logger
+
+# 获取logger
+logger = get_logger('gbox_tcp')
 
 class GBoxTCP:
     def __init__(self, gbox_ip='127.0.0.1:30080'):
@@ -26,7 +31,7 @@ class GBoxTCP:
         self.response_event = threading.Event()
         self.last_response = None
         self.waiting_for_response = False
-        print(f"初始化GBoxTCP实例: {self.ip}:{self.port}")
+        logger.info(f"初始化GBoxTCP实例: {self.ip}:{self.port}")
         # 初始化时直接连接
         self.connect()
 
@@ -99,7 +104,7 @@ class GBoxTCP:
                         buffer = buffer[cr_index + 2:]
                         # 去除可能的\r
                         line = line.rstrip('\r')
-                        print(f"收到原始数据: {line}")
+                        logger.debug(f"收到原始数据: {line}")
                         self._on_message_received(line)
                     except ValueError:
                         # 没有找到完整的行，但这是正常的
@@ -119,15 +124,15 @@ class GBoxTCP:
 
     def _on_message_received(self, message: str):
         """处理接收到的消息"""
-        print(f"开始解析消息: {message}")
+        logger.debug(f"开始解析消息: {message}")
         if self.waiting_for_response:
             try:
                 parsed_response = orjson.loads(message)
-                print(f"解析后的数据: {parsed_response}")
-                print(f"解析后itemid类型: {type(parsed_response.get('result', {}).get('itemid'))}")
+                logger.debug(f"解析后的数据: {parsed_response}")
+                logger.debug(f"解析后itemid类型: {type(parsed_response.get('result', {}).get('itemid'))}")
                 self.last_response = message
             except Exception as e:
-                print(f"解析JSON时出错: {e}")
+                logger.error(f"解析JSON时出错: {e}")
                 self.last_response = message
             self.response_event.set()
             self.waiting_for_response = False
@@ -180,7 +185,7 @@ class GBoxTCP:
         
         # 发送JSON消息
         s=json.dumps(message)
-        print(f"发送消息: {s}")
+        logger.debug(f"发送消息: {s}")
         if not self.send(s):
             self.waiting_for_response = False
             return None

@@ -17,6 +17,10 @@ import io
 from PIL import Image
 import time
 import datetime
+from gbox.logger import get_logger
+
+# 获取logger
+logger = get_logger('comfyui')
 
 # ComfyUI服务器地址
 server_address = "127.0.0.1:8188"
@@ -36,15 +40,15 @@ class ComfyUI:
         try:
             return json.loads(urllib.request.urlopen(req).read())
         except urllib.error.HTTPError as e:
-            print(f"HTTP错误: {e.code} - {e.reason}")
-            print("请求数据:", json.dumps(p, indent=2))
+            logger.error(f"HTTP错误: {e.code} - {e.reason}")
+            logger.error(f"请求数据: {json.dumps(p, indent=2)}")
             raise
 
     def get_images(self, ws, prompt):
         """通过WebSocket连接获取图像"""
-        print("正在提交工作流...")
+        logger.info("正在提交工作流...")
         prompt_id = self.queue_prompt(prompt)['prompt_id']
-        print(f"等待图像生成，任务ID: {prompt_id}")
+        logger.info(f"等待图像生成，任务ID: {prompt_id}")
         
         output_images = {}
         current_node = ""
@@ -67,14 +71,14 @@ class ComfyUI:
                         
                         if data['prompt_id'] == prompt_id:
                             if data['node'] is None:
-                                print("工作流执行完成!")
+                                logger.info("工作流执行完成!")
                                 break  # 执行完成
                             else:
                                 current_node = data['node']
-                                print(f"正在执行节点: {current_node}")
+                                logger.info(f"正在执行节点: {current_node}")
                 else:
                     # 这是图像数据
-                    print(f"收到来自节点 '{current_node}' 的图像数据")
+                    logger.info(f"收到来自节点 '{current_node}' 的图像数据")
                     images_output = output_images.get(current_node, [])
                     images_output.append(out[8:])  # 去掉WebSocket图像前缀
                     output_images[current_node] = images_output
@@ -83,19 +87,19 @@ class ComfyUI:
                 # 检查是否已收到图像且一段时间没有新消息，可能服务器未发送明确的完成消息
                 current_time = time.time()
                 if img_received and (current_time - last_msg_time) > no_msg_timeout:
-                    print(f"已超过 {no_msg_timeout} 秒没有新消息，且已收到图像数据，认为工作流可能已完成")
+                    logger.info(f"已超过 {no_msg_timeout} 秒没有新消息，且已收到图像数据，认为工作流可能已完成")
                     break
                     
             except websocket.WebSocketTimeoutException as e:
-                print(f"WebSocket超时: {e}")
+                logger.warning(f"WebSocket超时: {e}")
                 if img_received:
-                    print("已接收图像数据，尽管超时，继续处理")
+                    logger.info("已接收图像数据，尽管超时，继续处理")
                     break
                 else:
                     raise  # 如果还没有收到任何图像，则重新抛出异常
         
         if output_images:
-            print(f"已收集图像数据，准备处理")
+            logger.info(f"已收集图像数据，准备处理")
         return output_images
 
     def add_websocket_node(self, workflow_data):
@@ -103,7 +107,7 @@ class ComfyUI:
         # 检查工作流中是否已经有SaveImageWebsocket节点
         for node_id, node in workflow_data.items():
             if node.get("class_type") == "SaveImageWebsocket":
-                print("工作流已包含SaveImageWebsocket节点")
+                logger.info("工作流已包含SaveImageWebsocket节点")
                 return workflow_data
         
         # 查找VAEDecode节点和SaveImage节点
@@ -122,13 +126,13 @@ class ComfyUI:
         # 如果找到SaveImage节点的输入，使用它
         if save_node_input:
             input_source = save_node_input
-            print(f"使用SaveImage节点的输入源: {input_source}")
+            logger.info(f"使用SaveImage节点的输入源: {input_source}")
         # 否则尝试使用VAEDecode节点的输出
         elif vae_node_id:
             input_source = [vae_node_id, 0]
-            print(f"使用VAEDecode节点输出作为输入源: {input_source}")
+            logger.info(f"使用VAEDecode节点输出作为输入源: {input_source}")
         else:
-            print("警告: 无法找到合适的图像输入源，工作流可能无法正常工作")
+            logger.warning("警告: 无法找到合适的图像输入源，工作流可能无法正常工作")
             return workflow_data
         
         # 添加SaveImageWebsocket节点
@@ -139,7 +143,7 @@ class ComfyUI:
             }
         }
         
-        print("已添加SaveImageWebsocket节点到工作流")
+        logger.info("已添加SaveImageWebsocket节点到工作流")
         return workflow_data
     
     def generate_images(self, prompt_text=None, workflow_path=None, output_dir=None):
@@ -162,7 +166,7 @@ class ComfyUI:
             temp_dir = os.path.join(tempfile.gettempdir(), "gbox_comfyui_images")
             os.makedirs(temp_dir, exist_ok=True)
             output_dir = temp_dir
-            print(f"使用临时目录: {output_dir}")
+            logger.info(f"使用临时目录: {output_dir}")
         else:
             # 使用用户指定的目录
             os.makedirs(output_dir, exist_ok=True)
@@ -172,7 +176,7 @@ class ComfyUI:
             # 首先检查传入的是否为完整路径
             if os.path.exists(workflow_path):
                 workflow_file = workflow_path
-                print(f"使用指定的工作流文件: {workflow_file}")
+                logger.info(f"使用指定的工作流文件: {workflow_file}")
             else:
                 # 尝试作为文件名在workflow目录中查找
                 workflow_dir = os.path.join(os.path.dirname(__file__), "workflow")
@@ -180,24 +184,24 @@ class ComfyUI:
                 
                 if os.path.exists(potential_file):
                     workflow_file = potential_file
-                    print(f"使用工作流文件: {workflow_file}")
+                    logger.info(f"使用工作流文件: {workflow_file}")
                 else:
                     # 尝试添加.json扩展名
                     if not workflow_path.endswith('.json'):
                         potential_file_with_ext = os.path.join(workflow_dir, f"{workflow_path}.json")
                         if os.path.exists(potential_file_with_ext):
                             workflow_file = potential_file_with_ext
-                            print(f"使用工作流文件: {workflow_file}")
+                            logger.info(f"使用工作流文件: {workflow_file}")
                         else:
                             # 如果都找不到，使用默认工作流
-                            print(f"警告: 找不到工作流文件 '{workflow_path}'，使用默认工作流")
+                            logger.warning(f"警告: 找不到工作流文件 '{workflow_path}'，使用默认工作流")
                             workflow_file = os.path.join(workflow_dir, DEFAULT_WORKFLOW)
                             if not os.path.exists(workflow_file):
                                 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                                 workflow_file = os.path.join(base_dir, "comfyui", "workflow", DEFAULT_WORKFLOW)
                     else:
                         # 如果找不到，使用默认工作流
-                        print(f"警告: 找不到工作流文件 '{workflow_path}'，使用默认工作流")
+                        logger.warning(f"警告: 找不到工作流文件 '{workflow_path}'，使用默认工作流")
                         workflow_file = os.path.join(workflow_dir, DEFAULT_WORKFLOW)
                         if not os.path.exists(workflow_file):
                             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -208,13 +212,13 @@ class ComfyUI:
             if not os.path.exists(workflow_file):
                 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 workflow_file = os.path.join(base_dir, "comfyui", "workflow", DEFAULT_WORKFLOW)
-            print(f"使用默认工作流文件: {workflow_file}")
+            logger.info(f"使用默认工作流文件: {workflow_file}")
         
         try:
             with open(workflow_file, 'r', encoding='utf-8') as f:
                 workflow_data = json.load(f)
         except Exception as e:
-            print(f"加载工作流文件失败: {e}")
+            logger.error(f"加载工作流文件失败: {e}")
             raise
         
         # 如果文件不是以提示词节点，尝试找到合适的提示词节点
@@ -229,17 +233,17 @@ class ComfyUI:
             if prompt_node:
                 old_prompt = workflow_data[prompt_node]["inputs"]["text"]
                 workflow_data[prompt_node]["inputs"]["text"] = prompt_text
-                print(f"提示词: {prompt_text}")
+                logger.info(f"提示词: {prompt_text}")
             else:
-                print("警告: 未找到提示词节点，将使用原始提示词")
+                logger.warning("警告: 未找到提示词节点，将使用原始提示词")
         else:
-            print("未提供提示词，使用原始提示词")
+            logger.info("未提供提示词，使用原始提示词")
         
         # 添加SaveImageWebsocket节点到工作流
         workflow_data = self.add_websocket_node(workflow_data)
         
         # 连接WebSocket
-        print(f"连接WebSocket服务器: ws://{self.server_address}/ws?clientId={self.client_id}")
+        logger.info(f"连接WebSocket服务器: ws://{self.server_address}/ws?clientId={self.client_id}")
         ws = websocket.WebSocket()
         
         # 设置超时时间，避免永久等待
@@ -254,11 +258,11 @@ class ComfyUI:
             try:
                 images = self.get_images(ws, workflow_data)
             except websocket.WebSocketTimeoutException:
-                print("警告: WebSocket接收消息超时，可能是服务器没有发送完成消息")
-                print("尝试继续处理已收到的图像")
+                logger.warning("警告: WebSocket接收消息超时，可能是服务器没有发送完成消息")
+                logger.warning("尝试继续处理已收到的图像")
                 images = {}  # 如果出现超时，使用空字典
             except Exception as e:
-                print(f"获取图像时出错: {e}")
+                logger.error(f"获取图像时出错: {e}")
                 raise
             
             # 保存图像
@@ -280,12 +284,12 @@ class ComfyUI:
                         saved_paths.append(output_path)
                         # 获取并显示保存图片的完整绝对路径
                         full_output_path = os.path.abspath(output_path)
-                        print(f"图像已保存: {full_output_path}")
+                        logger.info(f"图像已保存: {full_output_path}")
                         image_count += 1
                     except Exception as e:
-                        print(f"保存图像失败: {e}")
+                        logger.error(f"保存图像失败: {e}")
             
-            print(f"\n成功生成并保存 {image_count} 张图像")
+            logger.info(f"\n成功生成并保存 {image_count} 张图像")
             
             # 尝试自动打开第一张图片
             if saved_paths:
@@ -305,16 +309,16 @@ class ComfyUI:
                             subprocess.run(['xdg-open', first_image_path], check=True)
                         # 获取并显示图片的完整绝对路径
                         full_image_path = os.path.abspath(first_image_path)
-                        print(f"已尝试在系统默认应用中打开图片: {full_image_path}")
+                        logger.info(f"已尝试在系统默认应用中打开图片: {full_image_path}")
                     except Exception as e:
                         # 如果系统命令打开失败，不要报错，只打印信息
-                        print(f"自动打开图片失败: {e}")
+                        logger.info(f"自动打开图片失败: {e}")
                 except Exception as e:
                     # 如果任何部分失败，不影响主功能
-                    print(f"尝试自动打开图片时出错: {e}")
+                    logger.info(f"尝试自动打开图片时出错: {e}")
             
         except Exception as e:
-            print(f"执行工作流时出错: {e}")
+            logger.error(f"执行工作流时出错: {e}")
             raise
         finally:
             try:
@@ -347,6 +351,6 @@ if __name__ == "__main__":
             server_addr=args.server
         )
     except Exception as e:
-        print(f"执行失败: {e}")
+        logger.error(f"执行失败: {e}")
         import sys
         sys.exit(1) 

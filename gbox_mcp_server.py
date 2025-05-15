@@ -9,6 +9,11 @@ from typing import Dict, List, Union
 from mcp.server.lowlevel.server import NotificationOptions
 from gbox.gbox_tcp import GBoxTCP
 from gbox.gbox_help import GboxHelp
+from gbox.logger import get_logger
+
+# 获取logger
+logger = get_logger('server')
+
 # 定义全局变量
 # 全局配置
 config = {
@@ -30,7 +35,7 @@ def fetch_tools(tagmcp,funname,params=None)->bool:
     
     # 检查tools_info是否为列表类型
     if not isinstance(tools_info, list):
-        print(f"获取到的工具信息格式不正确: {tools_info}")
+        logger.error(f"获取到的工具信息格式不正确: {tools_info}")
         return False
         
     # 遍历工具列表并添加到MCP
@@ -38,7 +43,7 @@ def fetch_tools(tagmcp,funname,params=None)->bool:
         for tool in tools_info:
             # 检查工具信息是否包含必要的字段
             if not isinstance(tool, dict) or 'name' not in tool or 'description' not in tool:
-                print(f"工具信息格式不正确，跳过: {tool}")
+                logger.warning(f"工具信息格式不正确，跳过: {tool}")
                 continue
                 
             # 为每个工具创建一个lambda函数，捕获工具名称、对象引用和参数定义
@@ -51,18 +56,18 @@ def fetch_tools(tagmcp,funname,params=None)->bool:
                 name=tool['name'],
                 description=tool['description']
             )
-        print(f"成功初始化 {len(tools_info)} 个工具")
+        logger.info(f"成功初始化 {len(tools_info)} 个工具")
         
         # 尝试通知工具变更
         try:
             if hasattr(tagmcp._mcp_server, 'send_notification'):
                 tagmcp._mcp_server.send_notification('$/tools/changed', None)
         except Exception as e:
-            print(f"发送工具变更通知时出错: {str(e)}")
+            logger.error(f"发送工具变更通知时出错: {str(e)}")
         
         return True
     except Exception as e:
-        print(f"初始化工具时发生错误: {str(e)}")
+        logger.error(f"初始化工具时发生错误: {str(e)}")
     return False
 
 
@@ -181,7 +186,7 @@ def generate_ai_image(prompt: str, workflow_file: str = None, output_dir: str = 
             "file_paths": file_paths
         }
     except Exception as e:
-        print(f"生成图像时发生错误: {str(e)}")
+        logger.error(f"生成图像时发生错误: {str(e)}")
         return {"error": str(e), "file_paths": []}
 
 def parse_args():
@@ -196,7 +201,7 @@ def parse_args():
         if k in config and v is not None:
             config[k] = v
     
-    print(f"使用服务器配置:", ", ".join(f"{k}={v}" for k, v in config.items()))
+    logger.info(f"使用服务器配置: " + ", ".join(f"{k}={v}" for k, v in config.items()))
     return config
 
 if __name__ == "__main__":
@@ -214,9 +219,9 @@ if __name__ == "__main__":
     try:
         if hasattr(mcp._mcp_server, 'send_notification'):
             mcp._mcp_server.send_notification('$/tools/changed', None)
-            print("Sent notification about dynamically fetched tool changes.")
+            logger.info("发送了动态获取工具变更的通知")
     except Exception as e:
-        print(f"发送工具变更通知时出错: {str(e)}")
+        logger.error(f"发送工具变更通知时出错: {str(e)}")
 
     mcp.run(transport='stdio')
     
