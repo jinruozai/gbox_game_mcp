@@ -127,7 +127,7 @@ class GBoxTCP:
         logger.debug(f"开始解析消息: {message}")
         if self.waiting_for_response:
             try:
-                parsed_response = orjson.loads(message)
+                parsed_response = json.loads(message)
                 logger.debug(f"解析后的数据: {parsed_response}")
                 logger.debug(f"解析后itemid类型: {type(parsed_response.get('result', {}).get('itemid'))}")
                 self.last_response = message

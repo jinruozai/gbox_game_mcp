@@ -1,1 +1,2 @@
-mcp[cli] 
+# MCP Server dependencies
+mcp>=1.0.0 
